@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RL Framework & Policy Gradients (Retail/CPG) — Class Infographic</title>
+
+  <!-- KaTeX for crisp, readable formulas (loads from CDN). -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-vZTG03m+2x6tNh8+QyZsX2u4O2o3Yw+8QH6p1r6gH4qj1kqv0e0hYd8hQJY0vYcS" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-7zCjD0J9w0e0QyG5yQ8bqEw1qgqzR4m0a8qHj7c1h4qjz0x0cYkJpP+9Gq0sG8tL" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-8m8mJ5cWQmQqgE5mR0+QXGzTtWw5gqk6GmR0v9K6m+gO7r1aS1Qv5n3cHh1rVQw2" crossorigin="anonymous"></script>
+
+  <style>
+    :root{
+      --bg: #0b1020;
+      --panel: #0f1730;
+      --card: rgba(255,255,255,0.06);
+      --card2: rgba(255,255,255,0.08);
+      --line: rgba(255,255,255,0.14);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.70);
+      --muted2: rgba(255,255,255,0.55);
+
+      --a: #7dd3fc;   /* cyan */
+      --b: #a7f3d0;   /* mint */
+      --c: #fda4af;   /* rose */
+      --d: #fde68a;   /* amber */
+      --e: #c4b5fd;   /* violet */
+    }
+
+    *{ box-sizing: border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background:
+        radial-gradient(900px 450px at 8% 6%, rgba(125,211,252,0.20), transparent 60%),
+        radial-gradient(900px 450px at 92% 10%, rgba(196,181,253,0.18), transparent 60%),
+        radial-gradient(900px 450px at 55% 95%, rgba(167,243,208,0.14), transparent 60%),
+        var(--bg);
+      color: var(--text);
+    }
+
+    .page{
+      width: 1240px;
+      margin: 0 auto;
+      padding: 36px 28px 28px;
+    }
+
+    .header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .title{
+      line-height: 1.15;
+    }
+    .title h1{
+      margin:0;
+      font-size: 30px;
+      letter-spacing: -0.02em;
+    }
+    .title p{
+      margin: 8px 0 0;
+      color: var(--muted);
+      max-width: 740px;
+      font-size: 14.5px;
+    }
+
+    .badgeRow{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      min-width: 320px;
+      align-items:flex-end;
+    }
+    .pill{
+      display:inline-flex;
+      gap:10px;
+      align-items:center;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      color: var(--muted);
+      font-size: 12.5px;
+      white-space: nowrap;
+    }
+    .dot{
+      width: 10px; height:10px;
+      border-radius: 50%;
+      background: var(--a);
+      box-shadow: 0 0 0 4px rgba(125,211,252,0.12);
+      flex: 0 0 auto;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.55fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+      position: relative;
+    }
+
+    .panel{
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow:hidden;
+      position: relative;
+    }
+
+    .panelHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.04);
+      border-bottom: 1px solid var(--line);
+    }
+    .panelHeader h2{
+      margin:0;
+      font-size: 15px;
+      letter-spacing: -0.01em;
+    }
+    .panelHeader span{
+      color: var(--muted2);
+      font-size: 12px;
+    }
+
+    .panelBody{
+      padding: 16px;
+    }
+
+    .card{
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px 14px 12px;
+      position: relative;
+    }
+
+    .card + .card{ margin-top: 12px; }
+
+    .labelRow{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      margin-bottom: 8px;
+    }
+    .label{
+      font-size: 12px;
+      color: var(--muted2);
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+    }
+    .tag{
+      font-size: 12px;
+      color: rgba(255,255,255,0.84);
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.05);
+    }
+    .tag.a{ border-color: rgba(125,211,252,0.35); }
+    .tag.b{ border-color: rgba(167,243,208,0.35); }
+    .tag.c{ border-color: rgba(253,164,175,0.35); }
+    .tag.d{ border-color: rgba(253,230,138,0.35); }
+    .tag.e{ border-color: rgba(196,181,253,0.35); }
+
+    .card h3{
+      margin: 0 0 6px;
+      font-size: 15px;
+      letter-spacing: -0.01em;
+    }
+    .card p{
+      margin: 0;
+      color: var(--muted);
+      font-size: 13.5px;
+      line-height: 1.45;
+    }
+
+    .katexWrap{
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px dashed rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.03);
+      color: rgba(255,255,255,0.92);
+      font-size: 13.5px;
+      overflow-x:auto;
+    }
+
+    /* Flow layout (left panel) */
+    .flow{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      position: relative;
+    }
+
+    .stepGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .step{
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      min-height: 120px;
+      position: relative;
+    }
+    .step .num{
+      position:absolute;
+      top: 12px; right: 12px;
+      font-size: 12px;
+      color: var(--muted2);
+      border: 1px solid var(--line);
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+    }
+    .step h3{
+      margin:0 0 6px;
+      font-size: 15px;
+    }
+    .step ul{
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 13.5px;
+      line-height: 1.45;
+    }
+
+    .callout{
+      border-left: 3px solid rgba(125,211,252,0.7);
+      background: rgba(125,211,252,0.06);
+      padding: 12px 12px 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(125,211,252,0.22);
+      color: var(--muted);
+      font-size: 13.5px;
+      line-height: 1.45;
+    }
+
+    /* Agent-Environment loop */
+    .loopWrap{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .loopCard{
+      background: rgba(255,255,255,0.045);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      overflow: hidden;
+      position: relative;
+    }
+    .loopTitle{
+      display:flex;
+      justify-content:space-between;
+      align-items:baseline;
+      gap:12px;
+      margin-bottom: 10px;
+    }
+    .loopTitle h3{
+      margin:0;
+      font-size: 15px;
+      letter-spacing: -0.01em;
+    }
+    .loopTitle span{ color: var(--muted2); font-size: 12px; }
+
+    .loopSvg{
+      width:100%;
+      height:auto;
+      display:block;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.08);
+    }
+
+    /* Right panel */
+    .mini{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .twoCol{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .footer{
+      margin-top: 14px;
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      color: var(--muted2);
+      font-size: 12.5px;
+      border-top: 1px solid rgba(255,255,255,0.10);
+      padding-top: 12px;
+    }
+
+    /* Print */
+    @media print {
+      body{ background: white; color: #111; }
+      .page{ width: auto; padding: 0; }
+      .panel, .card, .step, .loopCard, .pill{ break-inside: avoid; }
+      .panel, .card, .step, .loopCard{
+        border-color: #ddd !important;
+        background: #fff !important;
+      }
+      .panelHeader{
+        background: #f7f7f7 !important;
+        border-bottom-color: #ddd !important;
+      }
+      .katexWrap{ border-color: #ddd !important; background: #fafafa !important; }
+      .footer{ color:#444; border-top-color:#ddd; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <div class="header">
+      <div class="title">
+        <h1>Reinforcement Learning Framework & Policy Gradients (Retail/CPG)</h1>
+        <p>
+          A single-page class infographic that connects the business decision (“send coupon or not”) to the
+          RL formalism (MDP) and the training loop (REINFORCE policy gradients).
+          Designed for projecting in class or printing as a handout.
+        </p>
+      </div>
+      <div class="badgeRow">
+        <div class="pill"><span class="dot"></span>Retail/CPG Use Case: Couponing & Discount Feedback Loops</div>
+        <div class="pill"><span class="dot" style="background: var(--e); box-shadow:0 0 0 4px rgba(196,181,253,0.12);"></span>Algorithm: REINFORCE (Reward-Weighted Policy Gradient)</div>
+        <div class="pill"><span class="dot" style="background: var(--b); box-shadow:0 0 0 4px rgba(167,243,208,0.12);"></span>Goal: Maximize long-term profit (not only today’s conversion)</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT: Flow -->
+      <section class="panel">
+        <div class="panelHeader">
+          <h2>End-to-End Learning Flow (from business → math → training)</h2>
+          <span>Use this as the “one slide” summary</span>
+        </div>
+
+        <div class="panelBody flow">
+
+          <div class="stepGrid">
+            <div class="step">
+              <div class="num">Step 1</div>
+              <div class="labelRow">
+                <span class="label">Business</span>
+                <span class="tag a">Retail / CPG</span>
+              </div>
+              <h3>Decision with delayed effects</h3>
+              <ul>
+                <li>Action today affects customer behavior tomorrow.</li>
+                <li>Discounts can create <b>coupon addiction</b>.</li>
+                <li>We optimize for <b>lifetime value</b>, not just today’s sale.</li>
+              </ul>
+            </div>
+
+            <div class="step">
+              <div class="num">Step 2</div>
+              <div class="labelRow">
+                <span class="label">Formalize</span>
+                <span class="tag e">MDP</span>
+              </div>
+              <h3>Model as an MDP: (S, A, P, R, γ)</h3>
+              <ul>
+                <li><b>State (S)</b>: customer segment (Loyal / Price-Sensitive / Coupon-Addict).</li>
+                <li><b>Action (A)</b>: send coupon vs no coupon.</li>
+                <li><b>Reward (R)</b>: profit = margin − coupon cost.</li>
+                <li><b>Transition (P)</b>: coupons can shift customers into “addicted”.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="loopWrap">
+            <div class="loopCard">
+              <div class="loopTitle">
+                <h3>Agent–Environment Interaction Loop</h3>
+                <span>What happens every timestep</span>
+              </div>
+
+              <!-- Inline SVG (vector) -->
+              <svg class="loopSvg" viewBox="0 0 1200 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Agent environment loop">
+                <defs>
+                  <linearGradient id="g1" x1="0" x2="1" y1="0" y2="1">
+                    <stop offset="0" stop-color="rgba(125,211,252,0.22)"/>
+                    <stop offset="1" stop-color="rgba(196,181,253,0.18)"/>
+                  </linearGradient>
+                  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="rgba(0,0,0,0.35)"/>
+                  </filter>
+                  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(255,255,255,0.65)"/>
+                  </marker>
+                </defs>
+
+                <!-- Background -->
+                <rect x="14" y="14" width="1172" height="332" rx="18" fill="url(#g1)" opacity="0.55"/>
+                <rect x="14" y="14" width="1172" height="332" rx="18" fill="rgba(0,0,0,0.18)" stroke="rgba(255,255,255,0.10)"/>
+
+                <!-- Agent box -->
+                <g filter="url(#shadow)">
+                  <rect x="85" y="78" width="360" height="205" rx="18" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.18)"/>
+                </g>
+                <text x="115" y="120" fill="rgba(255,255,255,0.92)" font-size="20" font-weight="700">Agent</text>
+                <text x="115" y="152" fill="rgba(255,255,255,0.74)" font-size="15">Policy π(a|s; θ)</text>
+                <text x="115" y="176" fill="rgba(255,255,255,0.74)" font-size="15">Chooses action by sampling probabilities</text>
+                <text x="115" y="214" fill="rgba(255,255,255,0.70)" font-size="14">Input: state sₜ (customer segment)</text>
+                <text x="115" y="238" fill="rgba(255,255,255,0.70)" font-size="14">Output: action aₜ (coupon / no coupon)</text>
+
+                <!-- Environment box -->
+                <g filter="url(#shadow)">
+                  <rect x="755" y="78" width="360" height="205" rx="18" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.18)"/>
+                </g>
+                <text x="785" y="120" fill="rgba(255,255,255,0.92)" font-size="20" font-weight="700">Environment</text>
+                <text x="785" y="152" fill="rgba(255,255,255,0.74)" font-size="15">Customer response + behavior shift</text>
+                <text x="785" y="176" fill="rgba(255,255,255,0.74)" font-size="15">P(sₜ₊₁ | sₜ, aₜ), reward rₜ₊₁</text>
+                <text x="785" y="214" fill="rgba(255,255,255,0.70)" font-size="14">Outputs: profit reward + next segment</text>
+                <text x="785" y="238" fill="rgba(255,255,255,0.70)" font-size="14">(e.g., more couponing → addiction)</text>
+
+                <!-- Arrows -->
+                <path d="M 445 180 C 545 180, 655 180, 755 180" fill="none" stroke="rgba(255,255,255,0.65)" stroke-width="3.2" marker-end="url(#arrow)"/>
+                <text x="525" y="165" fill="rgba(255,255,255,0.78)" font-size="14">action aₜ</text>
+
+                <path d="M 755 240 C 655 310, 545 310, 445 240" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="3.2" marker-end="url(#arrow)"/>
+                <text x="510" y="325" fill="rgba(255,255,255,0.78)" font-size="14">reward rₜ₊₁ and next state sₜ₊₁</text>
+
+                <!-- Small nodes -->
+                <circle cx="600" cy="180" r="7" fill="rgba(125,211,252,0.92)"/>
+                <circle cx="600" cy="270" r="7" fill="rgba(167,243,208,0.92)"/>
+
+                <!-- Caption -->
+                <text x="85" y="320" fill="rgba(255,255,255,0.65)" font-size="13">
+                  Training data = trajectories (sₜ, aₜ, rₜ₊₁) collected from repeated interactions.
+                </text>
+              </svg>
+            </div>
+
+            <div class="stepGrid">
+              <div class="step">
+                <div class="num">Step 3</div>
+                <div class="labelRow">
+                  <span class="label">Objective</span>
+                  <span class="tag d">Long-term</span>
+                </div>
+                <h3>Returns and discounting</h3>
+                <ul>
+                  <li>Future profit matters: discount factor <b>γ</b> (close to 1 for LTV).</li>
+                  <li>Return accumulates rewards across time (delayed effects).</li>
+                </ul>
+                <div class="katexWrap">
+                  <div>Return:</div>
+                  <div>\[
+                    G_t = \sum_{k=0}^{T-t-1} \gamma^k \, r_{t+k+1}
+                  \]</div>
+                </div>
+              </div>
+
+              <div class="step">
+                <div class="num">Step 4</div>
+                <div class="labelRow">
+                  <span class="label">Policy Gradient</span>
+                  <span class="tag b">REINFORCE</span>
+                </div>
+                <h3>Reward-weighted learning</h3>
+                <ul>
+                  <li>Increase probability of actions that produce <b>high advantage</b>.</li>
+                  <li>Decrease probability of actions that harm long-term profit.</li>
+                </ul>
+                <div class="katexWrap">
+                  <div>Objective:</div>
+                  <div>\[
+                    J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[G_0]
+                  \]</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="num">Step 5</div>
+              <div class="labelRow">
+                <span class="label">Update Rule</span>
+                <span class="tag c">Variance control</span>
+              </div>
+              <h3>REINFORCE with baseline (advantage)</h3>
+              <ul>
+                <li>Compute returns \(G_t\) from each episode.</li>
+                <li>Use baseline \(b(s_t)\) (state-value estimate) to reduce variance.</li>
+                <li>Update policy parameters to maximize expected return.</li>
+              </ul>
+              <div class="katexWrap">
+                <div>\[
+                  \nabla_\theta J(\theta)\ \approx\ \frac{1}{N}\sum_{i=1}^{N}\sum_{t}
+                  \nabla_\theta \log \pi_\theta(a_t \mid s_t)\,\Big(G_t - b(s_t)\Big)
+                \]</div>
+                <div style="margin-top:8px; color: rgba(255,255,255,0.70); font-size: 12.5px;">
+                  Intuition: “If advantage is positive, make that action more likely in that state.”
+                </div>
+              </div>
+            </div>
+
+            <div class="callout">
+              <b>Exploration vs exploitation:</b> stochastic policies naturally explore by sampling actions,
+              but they still converge toward profitable behavior (e.g., “discipline couponing” if coupons create addiction).
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- RIGHT: Key pieces -->
+      <aside class="panel">
+        <div class="panelHeader">
+          <h2>Retail Coupon MDP — Concrete Mapping</h2>
+          <span>Use as a teaching script</span>
+        </div>
+
+        <div class="panelBody mini">
+          <div class="card">
+            <div class="labelRow">
+              <span class="label">State space</span>
+              <span class="tag a">S</span>
+            </div>
+            <h3>Customer segment (behavior)</h3>
+            <p><b>Loyal</b> · <b>Price‑Sensitive</b> · <b>Coupon‑Addicted</b></p>
+            <p style="margin-top:8px;">State should capture “what matters next” so the Markov assumption holds.</p>
+          </div>
+
+          <div class="twoCol">
+            <div class="card">
+              <div class="labelRow">
+                <span class="label">Actions</span>
+                <span class="tag b">A</span>
+              </div>
+              <h3>Two choices</h3>
+              <p><b>Send coupon</b> or <b>No coupon</b></p>
+              <p style="margin-top:8px;">Stochastic policy gives both a probability.</p>
+            </div>
+
+            <div class="card">
+              <div class="labelRow">
+                <span class="label">Reward</span>
+                <span class="tag d">R</span>
+              </div>
+              <h3>Profit signal</h3>
+              <p>Margin from purchase − coupon cost (if issued).</p>
+              <p style="margin-top:8px;">Reward aligns to business KPI (profit / day).</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="labelRow">
+              <span class="label">Transitions</span>
+              <span class="tag e">P</span>
+            </div>
+            <h3>Behavioral dynamics</h3>
+            <p>Couponing can increase immediate conversion, but also raises the probability a customer becomes coupon‑addicted (lower future value).</p>
+            <p style="margin-top:8px;">This is the “delayed negative effect” RL is built to handle.</p>
+          </div>
+
+          <div class="card">
+            <div class="labelRow">
+              <span class="label">Training output</span>
+              <span class="tag c">Policy</span>
+            </div>
+            <h3>What you interpret in class</h3>
+            <p>
+              The learned policy prints probabilities for each segment:
+              “How often do we send coupons to Loyal vs Price‑Sensitive customers?”
+            </p>
+            <p style="margin-top:8px;">
+              If coupons create addiction in the simulator, RL will reduce couponing to protect long‑term profit.
+            </p>
+          </div>
+
+          <div class="footer">
+            <div>Tip: Open in Chrome → Print → Save as PDF for a slide-ready PDF.</div>
+            <div>Format: 16:9 friendly (works as a single slide).</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    // KaTeX auto-render for all displayed formulas.
+    window.addEventListener("DOMContentLoaded", () => {
+      if (typeof renderMathInElement === "function") {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "\\[", right: "\\]", display: true},
+            {left: "$", right: "$", display: false},
+            {left: "\\(", right: "\\)", display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+</body>
+</html>

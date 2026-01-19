@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actor-Critic: The Dynamic Duo of RL</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 60px;
+        }
+        
+        .section-title {
+            font-size: 2.2em;
+            color: #333;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 4px solid #667eea;
+            text-align: center;
+        }
+        
+        .duo-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin: 40px 0;
+        }
+        
+        .actor-box {
+            background: linear-gradient(135deg, #FFE5B4 0%, #FFDAB9 100%);
+            padding: 30px;
+            border-radius: 15px;
+            border: 4px solid #FF6B6B;
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.2);
+        }
+        
+        .critic-box {
+            background: linear-gradient(135deg, #B4E5FF 0%, #B9DAFF 100%);
+            padding: 30px;
+            border-radius: 15px;
+            border: 4px solid #4ECDC4;
+            box-shadow: 0 8px 20px rgba(78, 205, 196, 0.2);
+        }
+        
+        .box-title {
+            font-size: 1.8em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .box-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        
+        .analogy {
+            background: #f5f7fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin: 15px 0;
+            font-style: italic;
+            color: #555;
+        }
+        
+        .role-description {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 25px 0;
+        }
+        
+        .role-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .role-item.actor {
+            border-left-color: #FF6B6B;
+        }
+        
+        .role-item.critic {
+            border-left-color: #4ECDC4;
+        }
+        
+        .role-label {
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .softmax-demo {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e0e7ff 100%);
+            padding: 30px;
+            border-radius: 12px;
+            margin: 30px 0;
+            border: 2px solid #667eea;
+        }
+        
+        .softmax-title {
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+        
+        .softmax-formula {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            color: #333;
+            line-height: 1.8;
+        }
+        
+        .softmax-example {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .example-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .chart-container {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin: 30px 0;
+            height: 400px;
+            position: relative;
+        }
+        
+        .chart-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .timeline-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .timeline-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f5f7fa 100%);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .timeline-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+        
+        .timeline-card.critical {
+            border: 2px solid #FF6B6B;
+            background: linear-gradient(135deg, #fff5f5 0%, #fff0f0 100%);
+        }
+        
+        .timeline-step {
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .timeline-card.critical .timeline-step {
+            color: #FF6B6B;
+        }
+        
+        .timeline-metric {
+            margin: 8px 0;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .metric-label {
+            color: #666;
+            font-weight: 600;
+        }
+        
+        .metric-value {
+            color: #333;
+            font-weight: 700;
+        }
+        
+        .advantage-bar {
+            margin: 10px 0;
+            padding: 8px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            position: relative;
+            height: 25px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .advantage-positive {
+            background: #e8f5e9;
+            position: relative;
+        }
+        
+        .advantage-negative {
+            background: #ffebee;
+            position: relative;
+        }
+        
+        .advantage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50 0%, #45a049 100%);
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.8em;
+        }
+        
+        .advantage-fill.negative {
+            background: linear-gradient(90deg, #f44336 0%, #d32f2f 100%);
+        }
+        
+        .insight-box {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-left: 5px solid #4CAF50;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            line-height: 1.8;
+        }
+        
+        .insight-box h4 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .insight-box.warning {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border-left-color: #FF9800;
+        }
+        
+        .insight-box.warning h4 {
+            color: #E65100;
+        }
+        
+        .insight-box.critical {
+            background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+            border-left-color: #9c27b0;
+        }
+        
+        .insight-box.critical h4 {
+            color: #6a1b9a;
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .comparison-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f5f7fa 100%);
+            padding: 25px;
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .comparison-title {
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .comparison-point {
+            margin: 12px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .comparison-point::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: 700;
+        }
+        
+        .workflow-diagram {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e0e7ff 100%);
+            padding: 30px;
+            border-radius: 12px;
+            margin: 30px 0;
+            border: 2px solid #667eea;
+        }
+        
+        .workflow-step {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            align-items: center;
+        }
+        
+        .workflow-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #667eea;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .workflow-arrow {
+            text-align: center;
+            font-size: 1.5em;
+            color: #667eea;
+        }
+        
+        .key-equation {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: #333;
+            line-height: 1.8;
+        }
+        
+        .equation-label {
+            color: #667eea;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .emoji {
+            margin-right: 10px;
+        }
+        
+        @media (max-width: 1024px) {
+            .duo-container {
+                grid-template-columns: 1fr;
+            }
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .role-description {
+                grid-template-columns: 1fr;
+            }
+            .softmax-example {
+                grid-template-columns: 1fr;
+            }
+            .workflow-step {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 Actor-Critic: The Dynamic Duo</h1>
+            <p>One Network Decides Actions, Another Judges How Good The Situation Is</p>
+        </div>
+        
+        <div class="content">
+            <!-- Section 1: The Metaphor -->
+            <div class="section">
+                <div class="section-title">🎬 The Theater Analogy</div>
+                
+                <div class="duo-container">
+                    <div class="actor-box">
+                        <div class="box-title">
+                            <span class="emoji">🎭</span> The ACTOR
+                        </div>
+                        <div class="box-content">
+                            <p><strong>Job:</strong> Make decisions</p>
+                            <p style="margin-top: 10px;">Chooses whether to SEND or NOT SEND a coupon</p>
+                            <p style="margin-top: 10px;"><strong>Learns:</strong> "What action should I take?"</p>
+                        </div>
+                        <div class="analogy">
+                            A performer on stage deciding their next move. The actor watches for feedback from the audience (the critic).
+                        </div>
+                    </div>
+                    
+                    <div class="critic-box">
+                        <div class="box-title">
+                            <span class="emoji">🎪</span> The CRITIC
+                        </div>
+                        <div class="box-content">
+                            <p><strong>Job:</strong> Judge situations</p>
+                            <p style="margin-top: 10px;">Estimates the value V(s) - "How good is this state?"</p>
+                            <p style="margin-top: 10px;"><strong>Learns:</strong> "How valuable is this situation?"</p>
+                        </div>
+                        <div class="analogy">
+                            A theater critic in the audience evaluating the performance. Tells the actor: "This is good" (high V) or "This is bad" (low V).
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="insight-box">
+                    <h4><span class="emoji">🎯</span> The Key Insight:</h4>
+                    <p><strong>Actor learns WHAT TO DO</strong> (policy)</p>
+                    <p style="margin-top: 10px;"><strong>Critic learns HOW GOOD THE SITUATION IS</strong> (value function)</p>
+                    <p style="margin-top: 15px; color: #1b5e20; font-weight: 700;">Together they create the most efficient learning algorithm!</p>
+                </div>
+            </div>
+            
+            <!-- Section 2: Softmax Explanation -->
+            <div class="section">
+                <div class="section-title">🔢 From Logits to Probabilities: Softmax</div>
+                
+                <div class="softmax-demo">
+                    <div class="softmax-title">What is Softmax?</div>
+                    
+                    <div class="softmax-formula">
+                        <strong>softmax(logits) → probabilities</strong><br><br>
+                        logits = [2.0, 1.0]<br>
+                        ↓ (apply softmax)<br>
+                        probs ≈ [0.73, 0.27]<br><br>
+                        <strong>Plain English:</strong> Higher logits become higher probabilities!
+                    </div>
+                    
+                    <div class="softmax-example">
+                        <div class="example-item">
+                            <strong>Logits [2.0, 1.0]:</strong>
+                            <p style="margin-top: 10px; color: #666;">Raw neural network outputs</p>
+                            <p style="margin-top: 10px; color: #667eea; font-weight: 700;">Action 0: 2.0 (higher)</p>
+                            <p style="color: #667eea;">Action 1: 1.0 (lower)</p>
+                        </div>
+                        <div class="example-item">
+                            <strong>Softmax Probs [0.73, 0.27]:</strong>
+                            <p style="margin-top: 10px; color: #666;">Normalized probabilities (sum to 1)</p>
+                            <p style="margin-top: 10px; color: #4CAF50; font-weight: 700;">Action 0: 73% chance</p>
+                            <p style="color: #4CAF50;">Action 1: 27% chance</p>
+                        </div>
+                    </div>
+                    
+                    <div class="insight-box warning">
+                        <h4>💡 Why Softmax?</h4>
+                        <p>The neural network outputs raw numbers (logits). Softmax converts them into proper probabilities that sum to 1.0, making it easy for the actor to sample actions!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 3: The Step-by-Step Process -->
+            <div class="section">
+                <div class="section-title">📊 The Learning Process: Steps 1-20</div>
+                
+                <div class="workflow-diagram">
+                    <div class="workflow-title" style="font-weight: 700; color: #667eea; margin-bottom: 20px; font-size: 1.2em;">
+                        What Happens at Each Step:
+                    </div>
+                    <div class="workflow-step">
+                        <div class="workflow-box">1️⃣<br>State</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-box">2️⃣<br>Actor<br>chooses</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-box">3️⃣<br>Get<br>reward</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-box">4️⃣<br>Critic<br>evaluates</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-box">5️⃣<br>Learn</div>
+                    </div>
+                </div>
+                
+                <div class="timeline-grid">
+                    <div class="timeline-card critical">
+                        <div class="timeline-step">🎉 STEP 4 (Reward!)</div>
+                        <div class="timeline-metric">
+                            <span class="metric-label">Action:</span>
+                            <span class="metric-value">SEND</span>
+                        </div>
+                        <div class="timeline-metric">
+                            <span class="metric-label">Reward:</span>
+                            <span class="metric-value">+70.0</span>
+                        </div>
+                        <div class="timeline-metric">
+                            <span class="metric-label">V(s):</span>
+                            <span class="metric-value">-0.15</span>
+                        </div>
+                        <div class="timeline-metric">
+                            <span class="metric-label">Advantage:</span>
+                            <span class="metric-value">+70.15</span> ✅
+                        </div>
+                        <div style="margin-top: 15px; padding: 10px; background: white; border-radius: 5px; font-size: 0.9em; border-left: 3px solid #4CAF50;">
+                            <strong>💰 BIG WIN!</strong> Actual reward (70) was much better than expected (-0.15).
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-card">
+                        <div class="timeline-step">📉 STEP 5</div>
+                        <div class="timeline-metric">
+                            <span class="metric-label">Action:</span>
+                            <span class="metric-value">SEND</span>
+                        </div>
+                        <div class="timeline-metric">
+                            <span class="metric-label">Reward:</span>
+                            <span class="metric-value">+0.0</span>
+                        </div>
+                        <div class="timeline-metric">
+                            <span class="metric-label">V(s):</span>
+                            <span class="metric-value">-0.05</span>
+                        </div>
+                        <div class="timeline-metric">
+                            <span class="metric-label">Advantage:</span>
+                            <span class="metric-value">+0.05</span> 📊
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-card critical">
+                        <div class="timeline-step">🎉 STEP 16 (Reward!)</div>
+                        <div class="timeline-metric">
+                            <span class="metric-label">Action:</span>
+                            <span class="metric-value">SEND</span>
+                        </div>
+                        <div class="timeline-metric">
+                            <span class="metric-label">Reward:</span>
+                            <span class="metric-value">+70.0</span>
+                        </div>
+                        <div class="timeline-metric">
+                            <span class="metric-label">V(s):</span>
+                            <span class="metric-value">+0.46</span>
+                        </div>
+                        <div class="timeline-metric">
+                            <span class="metric-label">Advantage:</span>
+                            <span class="metric-value">+69.54</span> ✅
+                        </div>
+                        <div style="margin-top: 15px; padding: 10px; background: white; border-radius: 5px; font-size: 0.9em; border-left: 3px solid #4CAF50;">
+                            <strong>💰 ANOTHER WIN!</strong> Again, SEND action paid off.
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-card">
+                        <div class="timeline-step">📉 STEP 18</div>
+                        <div class="timeline-metric">
+                            <span class="metric-label">Action:</span>
+                            <span class="metric-value">NO SEND</span>
+                        </div>
+                        <div class="timeline-metric">
+                            <span class="metric-label">Reward:</span>
+                            <span class="metric-value">+0.0</span>
+                        </div>
+                        <div class="timeline-metric">
+                            <span class="metric-label">V(s):</span>
+                            <span class="metric-value">+0.60</span>
+                        </div>
+                        <div class="timeline-metric">
+                            <span class="metric-label">Advantage:</span>
+                            <span class="metric-value">-0.60</span> ❌
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-card">
+                        <div class="timeline-step">📈 STEP 20</div>
+                        <div class="timeline-metric">
+                            <span class="metric-label">Action:</span>
+                            <span class="metric-value">SEND</span>
+                        </div>
+                        <div class="timeline-metric">
+                            <span class="metric-label">Reward:</span>
+                            <span class="metric-value">+0.0</span>
+                        </div>
+                        <div class="timeline-metric">
+                            <span class="metric-label">V(s):</span>
+                            <span class="metric-value">+0.71</span>
+                        </div>
+                        <div class="timeline-metric">
+                            <span class="metric-label">Advantage:</span>
+                            <span class="metric-value">-0.71</span> 📉
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 4: Understanding Advantage -->
+            <div class="section">
+                <div class="section-title">🎯 The Secret Sauce: ADVANTAGE</div>
+                
+                <div class="insight-box critical">
+                    <h4><span class="emoji">⚡</span> What is Advantage?</h4>
+                    <p><strong>Advantage = Actual Reward - Expected Value</strong></p>
+                    <p style="margin-top: 10px;"><strong>A(s,a) = r + V(s') - V(s)</strong></p>
+                    <p style="margin-top: 15px; color: #6a1b9a;">This tells the actor: "Was this action better or worse than expected?"</p>
+                </div>
+                
+                <div class="duo-container">
+                    <div>
+                        <h3 style="color: #4CAF50; margin-bottom: 20px;">✅ Positive Advantage</h3>
+                        <div class="insight-box success">
+                            <p><strong>Step 4:</strong> A = +70.15</p>
+                            <p style="margin-top: 10px;">Got reward of 70, expected -0.15 = "MUCH BETTER!"</p>
+                            <p style="margin-top: 15px;"><strong>Actor learns:</strong> "Increase probability of SEND ⬆️"</p>
+                            <p style="margin-top: 10px;"><strong>Critic learns:</strong> "This state is actually worth more than I thought" ⬆️</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 style="color: #f44336; margin-bottom: 20px;">❌ Negative Advantage</h3>
+                        <div class="insight-box warning">
+                            <p><strong>Step 18:</strong> A = -0.60</p>
+                            <p style="margin-top: 10px;">Got reward of 0, expected 0.60 = "WORSE!"</p>
+                            <p style="margin-top: 15px;"><strong>Actor learns:</strong> "Decrease probability of NO_SEND ⬇️"</p>
+                            <p style="margin-top: 10px;"><strong>Critic learns:</strong> "This state wasn't as good as I thought" ⬇️</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="insight-box">
+                    <h4><span class="emoji">🧠</span> Why is Advantage So Powerful?</h4>
+                    <p><strong>Without advantage:</strong> Agent might randomly get lucky. Learns slowly, overreacts to noise.</p>
+                    <p style="margin-top: 15px;"><strong>With advantage:</strong> Agent learns from <strong>surprise</strong>. "Was I right to expect this?" Uses the critic as a baseline to filter out random luck.</p>
+                    <p style="margin-top: 15px; color: #2e7d32; font-weight: 700;">Result: MUCH faster, more stable learning! 🚀</p>
+                </div>
+            </div>
+            
+            <!-- Section 5: Learning Curves -->
+            <div class="section">
+                <div class="section-title">📈 Observing the Learning</div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">Policy Learning: Probability of SEND Over Time</div>
+                    <canvas id="policyChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">Critic's Value Estimate: V(s) Over Time</div>
+                    <canvas id="valueChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">Advantage Magnitude: How Surprised Was the Agent?</div>
+                    <canvas id="advantageChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Section 6: Key Equations -->
+            <div class="section">
+                <div class="section-title">🔬 The Math (For Advanced Students)</div>
+                
+                <div class="key-equation">
+                    <div class="equation-label">Actor Update (Policy Gradient):</div>
+                    ∇θ_actor log π_θ(a|s) × A(s,a)<br><br>
+                    <span style="color: #666; font-size: 0.9em;">"Increase probability of action if advantage is positive, decrease if negative"</span>
+                </div>
+                
+                <div class="key-equation">
+                    <div class="equation-label">Critic Update (Value Function):</div>
+                    Minimize (r + γV(s') - V(s))²<br><br>
+                    <span style="color: #666; font-size: 0.9em;">"Make predictions match actual rewards"</span>
+                </div>
+                
+                <div class="key-equation">
+                    <div class="equation-label">Advantage (Temporal Difference):</div>
+                    A(s,a) = r + γV(s') - V(s)<br><br>
+                    <span style="color: #666; font-size: 0.9em;">"Difference between what we got and what we expected"</span>
+                </div>
+            </div>
+            
+            <!-- Section 7: The Evolution -->
+            <div class="section">
+                <div class="section-title">🔄 What's Changing Over 20 Steps?</div>
+                
+                <div class="comparison-grid">
+                    <div class="comparison-card">
+                        <div class="comparison-title">🎭 Actor's Logits (Getting Stronger)</div>
+                        <div class="comparison-point">
+                            <strong>Step 1:</strong> logits=[-0.08, +0.11]
+                            <p style="color: #666; font-size: 0.9em;">Slight bias toward action 1</p>
+                        </div>
+                        <div class="comparison-point">
+                            <strong>Step 10:</strong> logits=[+0.59, -0.55]
+                            <p style="color: #666; font-size: 0.9em;">Clear bias toward action 0 (SEND)</p>
+                        </div>
+                        <div class="comparison-point">
+                            <strong>Step 20:</strong> logits=[+0.97, -0.92]
+                            <p style="color: #666; font-size: 0.9em;">Very strong preference for SEND!</p>
+                        </div>
+                        <div style="margin-top: 15px; padding: 15px; background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border-radius: 8px; border-left: 3px solid #FF9800;">
+                            <strong>📈 Trend:</strong> Logits grow steadily as agent learns SEND is good.
+                        </div>
+                    </div>
+                    
+                    <div class="comparison-card">
+                        <div class="comparison-title">🎪 Critic's V(s) (Getting Better Estimates)</div>
+                        <div class="comparison-point">
+                            <strong>Step 1:</strong> V(s)=0.21
+                            <p style="color: #666; font-size: 0.9em;">Initial guess, might be wrong</p>
+                        </div>
+                        <div class="comparison-point">
+                            <strong>Step 10:</strong> V(s)=0.27
+                            <p style="color: #666; font-size: 0.9em;">Starting to understand state values</p>
+                        </div>
+                        <div class="comparison-point">
+                            <strong>Step 20:</strong> V(s)=0.71
+                            <p style="color: #666; font-size: 0.9em;">Better estimates after seeing rewards</p>
+                        </div>
+                        <div style="margin-top: 15px; padding: 15px; background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius: 8px; border-left: 3px solid #4CAF50;">
+                            <strong>📊 Trend:</strong> V(s) increases as critic realizes "good things happen here!"
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 8: Why Actor-Critic is Better -->
+            <div class="section">
+                <div class="section-title">🏆 Why Actor-Critic Beats Other Methods</div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 25px; margin: 30px 0;">
+                    <div class="insight-box warning">
+                        <h4>❌ Pure Policy Gradient</h4>
+                        <p><strong>Problem:</strong> High variance! Gets easily confused by random rewards.</p>
+                        <p style="margin-top: 10px; font-size: 0.9em;">Uses raw rewards: A = r (too noisy)</p>
+                    </div>
+                    
+                    <div class="insight-box">
+                        <h4>✅ Actor-Critic</h4>
+                        <p><strong>Solution:</strong> Uses critic as baseline to reduce variance!</p>
+                        <p style="margin-top: 10px; font-size: 0.9em;">Uses advantage: A = r - V(s) (filtered!)</p>
+                    </div>
+                    
+                    <div class="insight-box warning">
+                        <h4>❌ Pure Q-Learning</h4>
+                        <p><strong>Problem:</strong> Can diverge with continuous states.</p>
+                        <p style="margin-top: 10px; font-size: 0.9em;">Hard to scale to big problems</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 9: Classroom Summary -->
+            <div class="section">
+                <div class="section-title">🎓 Teaching Summary</div>
+                
+                <div class="insight-box critical">
+                    <h4><span class="emoji">🎬</span> The Theater Metaphor (Students Love This!)</h4>
+                    
+                    <p style="margin: 15px 0;"><strong>ACTOR (on stage):</strong></p>
+                    <p style="margin-left: 20px;">- Makes decisions: "Should I SEND a coupon?"</p>
+                    <p style="margin-left: 20px;">- Gets trained by rewards: "You made $70! Great!"</p>
+                    <p style="margin-left: 20px;">- Learns: "SEND is usually good"</p>
+                    
+                    <p style="margin: 20px 0;"><strong>CRITIC (in audience):</strong></p>
+                    <p style="margin-left: 20px;">- Judges situations: "This state is worth 0.71"</p>
+                    <p style="margin-left: 20px;">- Tells actor: "You did better/worse than expected!"</p>
+                    <p style="margin-left: 20px;">- Learns: "This is a good state, that's a bad state"</p>
+                    
+                    <p style="margin: 20px 0; color: #6a1b9a; font-weight: 700;">Result: Actor gets faster, smarter feedback! 🚀</p>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin: 30px 0;">
+                    <div class="insight-box">
+                        <h4>🧠 How Logits Work</h4>
+                        <p><strong>Raw outputs:</strong> [2.0, 1.0]</p>
+                        <p style="margin-top: 10px;"><strong>Softmax:</strong> [0.73, 0.27]</p>
+                        <p style="margin-top: 10px;"><strong>Meaning:</strong> 73% chance SEND, 27% chance NO</p>
+                        <p style="margin-top: 10px; color: #666; font-size: 0.9em;">Higher logits → higher probabilities!</p>
+                    </div>
+                    
+                    <div class="insight-box">
+                        <h4>⚡ The Advantage Trick</h4>
+                        <p><strong>Problem:</strong> Rewards are noisy (random luck)</p>
+                        <p style="margin-top: 10px;"><strong>Solution:</strong> Compare against baseline V(s)</p>
+                        <p style="margin-top: 10px;"><strong>Result:</strong> Learn from surprises only!</p>
+                        <p style="margin-top: 10px; color: #666; font-size: 0.9em;">Much more stable learning 📊</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 10: Key Takeaways -->
+            <div class="section">
+                <div class="insight-box critical">
+                    <h4 style="font-size: 1.3em;"><span class="emoji">🎯</span> 5 Key Takeaways:</h4>
+                    
+                    <p style="margin: 15px 0;"><strong>1. Actor learns what to do</strong> - Updates policy based on advantage</p>
+                    
+                    <p style="margin: 15px 0;"><strong>2. Critic learns how good situations are</strong> - Estimates V(s)</p>
+                    
+                    <p style="margin: 15px 0;"><strong>3. Advantage = surprise</strong> - r - V(s) tells if outcome was better/worse than expected</p>
+                    
+                    <p style="margin: 15px 0;"><strong>4. Softmax converts logits to probabilities</strong> - Neural network outputs → action probabilities</p>
+                    
+                    <p style="margin: 15px 0;"><strong>5. This is more stable and efficient than alternatives</strong> - Used in modern AI!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Data from the demo
+        const steps = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+        const sendProbs = [0.45, 0.52, 0.56, 0.60, 0.64, 0.68, 0.70, 0.72, 0.74, 0.76, 0.77, 0.78, 0.79, 0.80, 0.81, 0.82, 0.83, 0.85, 0.86, 0.87];
+        const vValues = [0.21, 0.04, -0.10, -0.15, -0.05, 0.04, 0.11, 0.17, 0.23, 0.27, 0.32, 0.35, 0.39, 0.41, 0.44, 0.46, 0.53, 0.60, 0.66, 0.71];
+        const advantages = [-0.21, -0.04, 0.10, 70.15, 0.05, -0.04, -0.11, -0.17, -0.23, -0.27, -0.32, -0.35, -0.39, -0.41, -0.44, 69.54, -0.53, -0.60, -0.66, -0.71];
+        
+        // Policy Chart
+        const policyCtx = document.getElementById('policyChart').getContext('2d');
+        new Chart(policyCtx, {
+            type: 'line',
+            data: {
+                labels: steps.map(s => `Step ${s}`),
+                datasets: [{
+                    label: 'P(SEND) - Actor Learning',
+                    data: sendProbs,
+                    borderColor: '#FF6B6B',
+                    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#FF6B6B',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: { font: { size: 12, weight: 'bold' } }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1.0,
+                        title: { display: true, text: 'Probability' }
+                    }
+                }
+            }
+        });
+        
+        // Value Chart
+        const valueCtx = document.getElementById('valueChart').getContext('2d');
+        new Chart(valueCtx, {
+            type: 'line',
+            data: {
+                labels: steps.map(s => `Step ${s}`),
+                datasets: [{
+                    label: 'V(s) - Critic Learning',
+                    data: vValues,
+                    borderColor: '#4ECDC4',
+                    backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#4ECDC4',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: { font: { size: 12, weight: 'bold' } }
+                    }
+                },
+                scales: {
+                    y: {
+                        title: { display: true, text: 'State Value' }
+                    }
+                }
+            }
+        });
+        
+        // Advantage Chart
+        const advantageCtx = document.getElementById('advantageChart').getContext('2d');
+        new Chart(advantageCtx, {
+            type: 'bar',
+            data: {
+                labels: steps.map(s => `Step ${s}`),
+                datasets: [{
+                    label: 'Advantage A(s,a)',
+                    data: advantages,
+                    backgroundColor: advantages.map(val => val > 10 ? '#4CAF50' : val > 0 ? '#81C784' : val > -1 ? '#FFB74D' : '#f44336'),
+                    borderColor: '#333',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: { font: { size: 12, weight: 'bold' } }
+                    }
+                },
+                scales: {
+                    y: {
+                        title: { display: true, text: 'Advantage Value' }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

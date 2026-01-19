@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Scaling RL with Neural Networks & Proximal Policy Optimization (PPO) — Rich Teaching Pack (16 Jan 2026)</title>
+
+  <!-- Math rendering (MathJax) -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$','$$'], ['\\[','\\]']] },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+  <style>
+    :root{
+      --bg:#0b1020; --stroke:rgba(255,255,255,.12);
+      --text:rgba(255,255,255,.92); --muted:rgba(255,255,255,.72); --muted2:rgba(255,255,255,.56);
+      --accent:#7C3AED; --accent2:#06B6D4; --good:#22C55E; --warn:#F59E0B; --bad:#EF4444;
+      --shadow:0 18px 70px rgba(0,0,0,.45); --r2:22px;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --max: 1140px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0; font-family:var(--sans); color:var(--text); line-height:1.55;
+      background:
+        radial-gradient(1200px 800px at 15% 5%, rgba(124,58,237,.35), transparent 60%),
+        radial-gradient(900px 700px at 85% 20%, rgba(6,182,212,.25), transparent 55%),
+        radial-gradient(900px 700px at 70% 95%, rgba(34,197,94,.14), transparent 60%),
+        var(--bg);
+    }
+    .wrap{ max-width:var(--max); margin:0 auto; padding:24px 18px 70px; }
+    a{ color: rgba(255,255,255,.92); text-decoration:none; }
+    a:hover{ text-decoration: underline; text-underline-offset: 4px; }
+
+    .topbar{
+      position:sticky; top:0; z-index:30; backdrop-filter: blur(12px);
+      background: linear-gradient(180deg, rgba(11,16,32,.92), rgba(11,16,32,.70));
+      border-bottom: 1px solid rgba(255,255,255,.10);
+    }
+    .topbar .inner{
+      max-width:var(--max); margin:0 auto; padding:10px 18px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    }
+    .brand{ display:flex; align-items:center; gap:10px; font-weight:780; letter-spacing:.2px; }
+    .dot{ width:10px;height:10px;border-radius:99px;background:var(--accent); box-shadow:0 0 0 6px rgba(124,58,237,.18); }
+    .actions{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .btn{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: transform .06s ease, background .15s ease;
+      user-select:none;
+    }
+    .btn:hover{ background: rgba(255,255,255,.10); }
+    .btn:active{ transform: scale(.98); }
+    .btn.primary{
+      border-color: rgba(124,58,237,.45);
+      background: linear-gradient(180deg, rgba(124,58,237,.24), rgba(124,58,237,.10));
+    }
+    .kbd{
+      font-family: var(--mono); font-size: 11px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.20);
+      padding: 2px 6px;
+      border-radius: 8px;
+      color: rgba(255,255,255,.82);
+    }
+
+    .hero{
+      border:1px solid var(--stroke);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border-radius: var(--r2);
+      box-shadow: var(--shadow);
+      padding: 20px 20px 16px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(900px 400px at 10% 10%, rgba(124,58,237,.30), transparent 60%),
+                  radial-gradient(700px 360px at 95% 20%, rgba(6,182,212,.22), transparent 60%);
+      opacity:.55; pointer-events:none;
+    }
+    .hero > *{ position:relative; }
+    .pills{ display:flex; gap:10px; flex-wrap:wrap; }
+    .pill{
+      font-size: 12px; color: rgba(255,255,255,.78);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      padding: 6px 10px; border-radius: 999px;
+      letter-spacing: .08em; text-transform: uppercase;
+    }
+    h1{ margin: 12px 0 8px; font-size: clamp(28px, 3.2vw, 40px); letter-spacing: -0.02em; line-height: 1.1; }
+    .sub{ margin:0 0 14px; color:var(--muted); max-width:100ch; font-size:14px; }
+    .metaRow{ display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; color:var(--muted2); font-size:12px; }
+
+    .layout{ display:grid; grid-template-columns: 320px 1fr; gap: 14px; margin-top: 16px; }
+    @media (max-width: 980px){ .layout{ grid-template-columns: 1fr; } }
+
+    .side{
+      border: 1px solid var(--stroke);
+      border-radius: var(--r2);
+      background: rgba(255,255,255,.04);
+      overflow:hidden;
+      position: sticky; top: 72px;
+      height: fit-content;
+    }
+    @media (max-width: 980px){ .side{ position: relative; top: 0; } }
+    .sideHeader{
+      padding: 14px 14px 10px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+    }
+    .sideHeader .title{ font-weight: 750; letter-spacing: .2px; }
+    .sideHeader .hint{ color: var(--muted2); font-size: 12px; }
+    .toc{ padding: 10px 10px 12px; display:flex; flex-direction:column; gap:6px; }
+    .toc a{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 10px 10px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.14);
+      color: rgba(255,255,255,.88);
+      font-size: 13px;
+    }
+    .toc a:hover{ background: rgba(255,255,255,.06); text-decoration:none; }
+    .chip{
+      font-size: 11px;
+      border:1px solid rgba(255,255,255,.12);
+      padding: 2px 7px; border-radius: 999px;
+      color: rgba(255,255,255,.72);
+      background: rgba(255,255,255,.04);
+      font-family: var(--mono);
+    }
+
+    section{
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
+      border-radius: var(--r2);
+      padding: 18px; margin-bottom: 14px;
+    }
+    section h2{
+      margin:0 0 8px; font-size: 20px; letter-spacing: .2px;
+      display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    }
+    section h2 small{ font-size: 12px; color: var(--muted2); letter-spacing: .08em; text-transform: uppercase; }
+    h3{ margin: 14px 0 8px; font-size: 16px; }
+    p, li{ color: var(--muted); }
+    ul, ol{ margin: 6px 0 0 18px; }
+
+    .grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    @media (max-width: 980px){ .grid{ grid-template-columns: 1fr; } }
+    .card{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .head{ display:flex; align-items:center; gap:10px; margin-bottom: 6px; }
+    .badge{ width:10px;height:10px;border-radius:999px;background:var(--accent); box-shadow:0 0 0 6px rgba(124,58,237,.16); }
+    .badge.good{ background: var(--good); box-shadow:0 0 0 6px rgba(34,197,94,.13); }
+    .badge.warn{ background: var(--warn); box-shadow:0 0 0 6px rgba(245,158,11,.13); }
+    .badge.bad{ background: var(--bad); box-shadow:0 0 0 6px rgba(239,68,68,.13); }
+    .label{ font-weight:800; letter-spacing:.08em; text-transform:uppercase; font-size:12px; color:rgba(255,255,255,.85); }
+
+    .math{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.22);
+      border-radius: 14px;
+      padding: 10px 12px;
+      overflow:auto;
+      margin: 10px 0 8px;
+    }
+    .explain{
+      border:1px dashed rgba(255,255,255,.14);
+      background: rgba(255,255,255,.04);
+      border-radius: 14px;
+      padding: 10px 12px;
+      margin: 0 0 10px;
+      color: rgba(255,255,255,.78);
+    }
+    .explain b{ color: rgba(255,255,255,.92); }
+    .explain .mini{ margin-top: 6px; color: rgba(255,255,255,.72); }
+    .callout{
+      border:1px solid rgba(255,255,255,.12);
+      background: linear-gradient(180deg, rgba(124,58,237,.15), rgba(255,255,255,.03));
+      border-radius: 16px;
+      padding: 12px 12px;
+      margin-top: 10px;
+      color: rgba(255,255,255,.84);
+    }
+    .code{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.24);
+      border-radius: 14px;
+      padding: 12px 12px;
+      overflow:auto;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: rgba(255,255,255,.90);
+      white-space: pre;
+    }
+    details{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.16);
+      border-radius: 16px;
+      padding: 12px 12px;
+      margin-top: 10px;
+    }
+    details summary{
+      cursor:pointer;
+      list-style:none;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 12px;
+      font-weight: 700;
+      color: rgba(255,255,255,.90);
+    }
+    details summary::-webkit-details-marker{ display:none; }
+    details summary .meta{ font-weight:600; color:var(--muted2); font-size:12px; }
+    .caret{
+      width:18px;height:18px;border-radius:10px;
+      border:1px solid rgba(255,255,255,.12);
+      display:grid; place-items:center;
+      background: rgba(255,255,255,.05);
+    }
+    details[open] .caret svg{ transform: rotate(180deg); }
+
+    .footer{ text-align:center; margin-top:18px; color:var(--muted2); font-size:12px; }
+
+    @media print{
+      .topbar{ display:none; }
+      body{ background:white; color:#111; }
+      .hero, section, .side{ box-shadow:none; background:white; border-color:#ddd; }
+      p,li{ color:#222; }
+      .card, .math, .code, details, .explain, .callout{ background:white; border-color:#ddd; }
+      a{ color:#111; text-decoration: underline; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="inner">
+      <div class="brand">
+        <span class="dot"></span>
+        <span>Scaling RL with Neural Networks & Proximal Policy Optimization (PPO)</span>
+        <span class="kbd">16 Jan 2026</span>
+      </div>
+      <div class="actions">
+        <button class="btn" onclick="jump('#toc')">TOC</button>
+        <button class="btn" onclick="jump('#p1')">Start</button>
+        <button class="btn primary" onclick="window.print()">Print / Save as PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="hero" id="p1">
+      <div class="pills">
+        <div class="pill">Mini English Under Every Formula</div>
+        <div class="pill">Retail Coupon</div>
+        <div class="pill">Semantic Search + Data Contracts</div>
+        <div class="pill">GAE(λ)</div>
+        <div class="pill">Proximal Policy Optimization (PPO)</div>
+      </div>
+      <h1>Rich Teaching Notes — Neural Networks & Proximal Policy Optimization (PPO)</h1>
+      <p class="sub">
+        Built for classroom delivery: each equation is followed by <b>how to read it in plain English</b> and a <b>small numeric example</b>.
+        Use the right panel TOC for fast navigation during teaching.
+      </p>
+      <div class="metaRow">
+        <div>Audience: engineers (4–6 yrs) • Focus: intuition + stability knobs</div>
+        <div>Shortcuts: <span class="kbd">J</span>/<span class="kbd">K</span> jump sections</div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <aside class="side" id="toc">
+        <div class="sideHeader">
+          <div>
+            <div class="title">Table of Contents</div>
+            <div class="hint">Use while teaching</div>
+          </div>
+          <div class="hint"><span class="kbd">Ctrl/Cmd+P</span></div>
+        </div>
+        <nav class="toc">
+          <a href="#s1"><span>1) Tabular RL doesn’t scale</span><span class="chip">Q(s,a)</span></a>
+          <a href="#s2"><span>2) State representation</span><span class="chip">s ∈ R^d</span></a>
+          <a href="#s3"><span>3) Neural function approximation</span><span class="chip">Qθ, πθ</span></a>
+          <a href="#s4"><span>4) Actor–Critic</span><span class="chip">πθ, Vϕ</span></a>
+          <a href="#s5"><span>5) Return + discount</span><span class="chip">G_t</span></a>
+          <a href="#s6"><span>6) Advantage</span><span class="chip">A_t</span></a>
+          <a href="#s7"><span>7) TD error + GAE(λ)</span><span class="chip">δ_t</span></a>
+          <a href="#s8"><span>8) PPO ratio + clipping</span><span class="chip">r, ε</span></a>
+          <a href="#s9"><span>9) PPO full loss</span><span class="chip">L</span></a>
+          <a href="#s10"><span>10) Training loop: Iter/blocks</span><span class="chip">logs</span></a>
+          <a href="#s11"><span>11) Reading your output</span><span class="chip">mean return</span></a>
+          <a href="#s12"><span>12) Hyperparameter cheat-sheet</span><span class="chip">tune</span></a>
+          <a href="#s13"><span>13) Two real-world examples</span><span class="chip">retail+data</span></a>
+          <a href="#s14"><span>14) Recap</span><span class="chip">summary</span></a>
+        </nav>
+      </aside>
+
+      <main>
+
+        <section id="s1">
+          <h2>1) Tabular RL doesn’t scale <small>memorize vs generalize</small></h2>
+
+          <p>Tabular Q-learning stores a number for every (state, action):</p>
+          <div class="math">$$Q(s,a)\in\mathbb{R}$$</div>
+          <div class="explain">
+            <b>Plain English (how to read):</b> “Q of s and a is a single number that tells how good action a is in situation s.”
+            <div class="mini"><b>Mini example:</b> If state is “price-sensitive customer” and action is “send coupon”, Q(s,a)=8.2 means “expected long-run profit ≈ 8.2 units.”</div>
+          </div>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Retail coupon explosion</div></div>
+              <p>Even with simple bucketing:</p>
+              <div class="math">$$|S|=366\times31\times50\times20\times10\approx 113{,}460{,}000$$</div>
+              <div class="explain">
+                <b>Plain English:</b> “That’s ~113 million unique customer situations. A table would need an entry for each of them.”
+                <div class="mini"><b>Mini example:</b> With 2 actions (coupon / no coupon), you’d store ~227 million Q-values.</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">Continuous features ⇒ infinite states</div></div>
+              <p>If “time since last purchase” is a continuous number, then the number of distinct states becomes effectively infinite.</p>
+              <div class="callout"><b>Teach line:</b> “Tabular RL needs to see the exact same state again. Real customers rarely repeat exactly.”</div>
+            </div>
+          </div>
+
+          <details>
+            <summary>
+              Why is freq_30d = 31 values?
+              <span class="meta">0..30 inclusive</span>
+              <span class="caret"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7l5 6 5-6" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </summary>
+            <div style="margin-top:10px;">
+              <div class="math">$$\{0,1,2,\dots,30\}\Rightarrow 30-0+1=31$$</div>
+              <div class="explain">
+                <b>Plain English:</b> “It’s a count. From 0 purchases to 30 purchases gives 31 integers.”
+                <div class="mini"><b>Mini example:</b> If someone bought on 2 days in the last month, freq_30d=2.</div>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section id="s2">
+          <h2>2) State representation <small>business → vector</small></h2>
+          <p>At scale, we represent state as a numeric feature vector:</p>
+          <div class="math">$$s\in\mathbb{R}^d$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “State s is a list of d numbers describing the situation.”
+            <div class="mini"><b>Mini example:</b> If d=5, then s could be [0.6, 0.2, 0.4, 0.9, 0.1].</div>
+          </div>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Retail coupon state</div></div>
+              <div class="math">$$s=[\text{recency},\ \text{freq},\ \text{basket},\ \text{sensitivity},\ \text{addiction}]$$</div>
+              <div class="explain">
+                <b>Plain English:</b> “We compress a customer into a few decision-relevant signals.”
+                <div class="mini"><b>Mini example:</b> sensitivity=0.9 means “this customer reacts strongly to discounts.”</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">Normalization (important)</div></div>
+              <div class="code">recency_norm = recency_days / 365.0
+freq_norm    = min(freq_30d, 30) / 30.0</div>
+              <div class="explain">
+                <b>Plain English:</b> “Put features on the same 0–1 scale to keep learning stable.”
+                <div class="mini"><b>Mini example:</b> recency_days=180 ⇒ recency_norm ≈ 0.49.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="s3">
+          <h2>3) Neural function approximation <small>replace the table</small></h2>
+
+          <h3>Option A: approximate Q-values</h3>
+          <div class="math">$$Q_\theta(s,a)\approx Q(s,a)$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “A neural network with weights θ predicts the long-run value for (state, action).”
+            <div class="mini"><b>Mini example:</b> Qθ(send)=7.8 and Qθ(no)=6.1 ⇒ choose “send”.</div>
+          </div>
+
+          <h3>Option B: learn policy directly (used in Proximal Policy Optimization (PPO))</h3>
+          <div class="math">$$\pi_\theta(a\mid s)$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “The network outputs probabilities over actions.”
+            <div class="mini"><b>Mini example:</b> πθ(send|s)=0.28 means the agent sends a coupon ~28% of the time in similar states.</div>
+          </div>
+        </section>
+
+        <section id="s4">
+          <h2>4) Actor–Critic <small>actor chooses, critic judges</small></h2>
+
+          <h3>Actor (policy network)</h3>
+          <div class="math">$$\pi_\theta(a\mid s)=\text{softmax}(f_\theta(s))_a$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “Network gives scores (logits), softmax turns them into probabilities that sum to 1.”
+            <div class="mini"><b>Mini example:</b> logits=[2.0,1.0] ⇒ softmax ≈ [0.73,0.27].</div>
+          </div>
+
+          <h3>Critic (value network)</h3>
+          <div class="math">$$V_\phi(s)\approx \mathbb{E}\left[\sum_{t=0}^{\infty}\gamma^t r_t\ \middle|\ s_0=s\right]$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “Vϕ(s) predicts the expected discounted total reward starting from state s.”
+            <div class="mini"><b>Mini example:</b> If Vϕ(s)=0.30, critic thinks “from here, total future reward ≈ 0.30.”</div>
+          </div>
+        </section>
+
+        <section id="s5">
+          <h2>5) Return + discount factor <small>long-term vs short-term</small></h2>
+          <p>Return from time t:</p>
+          <div class="math">$$G_t=\sum_{k=0}^{\infty}\gamma^k r_{t+k}$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “Return is the total reward, but future rewards are discounted by γ.”
+            <div class="mini"><b>Mini example:</b> If γ=0.99, a reward of 1 tomorrow is worth 0.99 today. A reward in 2 steps is worth 0.99² ≈ 0.9801.</div>
+          </div>
+
+          <details>
+            <summary>
+              Why discounting matters in retail couponing
+              <span class="meta">delayed addiction effect</span>
+              <span class="caret"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7l5 6 5-6" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </summary>
+            <div style="margin-top:10px;">
+              <div class="callout">
+                If you send coupons daily, you may increase conversions today (high immediate r),
+                but you might reduce future margins (lower future r). γ controls how much the agent cares about that future margin.
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section id="s6">
+          <h2>6) Advantage <small>better than expected?</small></h2>
+
+          <div class="math">$$A_t\approx R_t - V_\phi(s_t)$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “Advantage = actual outcome minus expected outcome.”
+            <div class="mini"><b>Mini example:</b> If R=0.90 and V=0.30, then A=0.60 (good surprise) ⇒ increase probability of chosen action.</div>
+          </div>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge good"></span><div class="label">Positive advantage</div></div>
+              <div class="math">$$A=0.90-0.30=0.60$$</div>
+              <div class="explain">
+                <b>Plain English:</b> “This action did better than expected, so do it more often.”
+              </div>
+            </div>
+            <div class="card">
+              <div class="head"><span class="badge bad"></span><div class="label">Negative advantage</div></div>
+              <div class="math">$$A=0.05-0.30=-0.25$$</div>
+              <div class="explain">
+                <b>Plain English:</b> “This action did worse than expected, so do it less often.”
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="s7">
+          <h2>7) TD error + GAE(λ) <small>smoother advantages</small></h2>
+
+          <div class="math">$$\delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “TD error is the ‘surprise’: reward + discounted next value − current value.”
+            <div class="mini"><b>Mini example:</b> r=0.20, γ=0.99, V(next)=0.25, V(now)=0.30 ⇒ δ=0.1475.</div>
+          </div>
+
+          <div class="math">$$A_t = \sum_{l=0}^{\infty}(\gamma\lambda)^l\delta_{t+l}$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “GAE adds up future surprises, discounting them by (γλ) each step.”
+            <div class="mini"><b>Mini example:</b> If γλ≈0.94, then δ next step counts 0.94×, two steps later 0.94²×, etc.</div>
+          </div>
+
+          <details open>
+            <summary>
+              Mini worked example (3 steps)
+              <span class="meta">compute δ and A</span>
+              <span class="caret"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7l5 6 5-6" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </summary>
+            <div style="margin-top:10px;">
+              <p>Assume γ=0.99, λ=0.95 ⇒ γλ=0.9405</p>
+              <div class="code">t        0      1      2
+r_t    0.20   0.00   0.60
+V(s)   0.30   0.25   0.40
+V(s+1) 0.25   0.40   0.10</div>
+              <div class="math">$$\delta_0=0.20+0.99(0.25)-0.30=0.1475$$</div>
+              <div class="math">$$\delta_1=0.00+0.99(0.40)-0.25=0.1460$$</div>
+              <div class="math">$$\delta_2=0.60+0.99(0.10)-0.40=0.2990$$</div>
+              <div class="math">$$A_0\approx \delta_0+(\gamma\lambda)\delta_1+(\gamma\lambda)^2\delta_2\approx 0.551$$</div>
+              <div class="explain">
+                <b>Plain English:</b> “A0 is positive, so the actions around t=0 were better than expected overall.”
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section id="s8">
+          <h2>8) Proximal Policy Optimization (PPO) ratio + clipping <small>safe updates</small></h2>
+
+          <div class="math">$$r_t(\theta)=\frac{\pi_\theta(a_t\mid s_t)}{\pi_{\theta_{old}}(a_t\mid s_t)}$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “Ratio tells how much the new policy increased/decreased the probability of the chosen action.”
+            <div class="mini"><b>Mini example:</b> old prob=0.20, new prob=0.34 ⇒ r=1.70 (big jump).</div>
+          </div>
+
+          <div class="math">$$L^{CLIP}(\theta)=\mathbb{E}\left[\min\left(r_tA_t,\ \text{clip}(r_t,1-\epsilon,1+\epsilon)A_t\right)\right]$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “Improve with advantage A, but cap probability change to within ±ε.”
+            <div class="mini"><b>Mini example:</b> ε=0.2 ⇒ allowed r range [0.8,1.2]. If r=1.70, we use 1.2 instead.</div>
+          </div>
+
+          <details open>
+            <summary>
+              Clipping example with numbers
+              <span class="meta">why PPO is stable</span>
+              <span class="caret"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7l5 6 5-6" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </summary>
+            <div style="margin-top:10px;">
+              <div class="grid">
+                <div class="card">
+                  <div class="head"><span class="badge good"></span><div class="label">A is positive</div></div>
+                  <p>Let A=+0.6, ε=0.2, old prob=0.20, new prob=0.34 ⇒ r=1.70</p>
+                  <div class="math">$$\text{clip}(r,0.8,1.2)=1.2$$</div>
+                  <div class="math">$$rA=1.70\times0.6=1.02,\quad \text{clipped }=1.2\times0.6=0.72$$</div>
+                  <div class="explain"><b>Plain English:</b> “PPO refuses to take the full 1.02 step; it uses 0.72 to avoid overshooting.”</div>
+                </div>
+                <div class="card">
+                  <div class="head"><span class="badge bad"></span><div class="label">A is negative</div></div>
+                  <p>Let A=-0.5, ε=0.2, old prob=0.40, new prob=0.10 ⇒ r=0.25</p>
+                  <div class="math">$$\text{clip}(r,0.8,1.2)=0.8$$</div>
+                  <div class="math">$$rA=0.25(-0.5)=-0.125,\quad \text{clipped }=0.8(-0.5)=-0.4$$</div>
+                  <div class="explain"><b>Plain English:</b> “Bad actions get penalized more strongly, and policy doesn’t bounce wildly.”</div>
+                </div>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section id="s9">
+          <h2>9) Proximal Policy Optimization (PPO) full loss <small>policy + value + entropy</small></h2>
+
+          <div class="math">$$\mathcal{L} = -L^{CLIP}(\theta) + c_1\cdot \mathcal{L}^{VF}(\phi) - c_2\cdot \mathcal{H}(\pi_\theta)$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “We maximize the clipped policy objective, train the critic, and keep exploration with entropy.”
+            <div class="mini"><b>Mini example:</b> If entropy becomes near zero too early, policy becomes deterministic and can get stuck.</div>
+          </div>
+
+          <div class="math">$$\mathcal{L}^{VF}=(V_\phi(s_t)-R_t)^2$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “Value loss is how wrong the critic is compared to the observed return.”
+            <div class="mini"><b>Mini example:</b> If V=0.2 and R=0.9, then value loss=(0.2−0.9)²=0.49.</div>
+          </div>
+
+          <div class="math">$$\mathcal{H}(\pi)=-\sum_a \pi(a\mid s)\log \pi(a\mid s)$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “Entropy is a measure of randomness: high entropy = exploring, low entropy = confident.”
+            <div class="mini"><b>Mini example:</b> π=[0.5,0.5] has higher entropy than π=[0.95,0.05].</div>
+          </div>
+        </section>
+
+        <section id="s10">
+          <h2>10) Training loop: “Iter” and “blocks” <small>what logs mean</small></h2>
+
+          <div class="callout">
+            <b>Simple definition for class:</b><br>
+            <b>Iteration (Iter)</b> = one cycle of data collection + Proximal Policy Optimization (PPO) updates.
+            <br><br>
+            <b>Block</b> = one fixed-length rollout chunk (like 30 steps or 128 steps), used to compute return.
+          </div>
+
+          <ol>
+            <li>Collect rollouts using policy snapshot π<sub>old</sub></li>
+            <li>Compute returns and advantages (often with GAE)</li>
+            <li>Run multiple gradient steps with PPO clipping</li>
+          </ol>
+        </section>
+
+        <section id="s11">
+          <h2>11) Reading your output <small>moving average</small></h2>
+
+          <div class="code">Iter  10 | recent mean return (last 10 blocks) =   881.30
+Iter  20 | recent mean return (last 10 blocks) =   993.61
+Iter  30 | recent mean return (last 10 blocks) =   813.45
+Iter  40 | recent mean return (last 10 blocks) =   635.08</div>
+
+          <div class="explain">
+            <b>Plain English:</b> “We average the last 10 blocks to smooth noise. The trend is what matters, not one spike.”
+            <div class="mini"><b>Mini example:</b> If one rollout is unlucky (low return), the moving average prevents panic.</div>
+          </div>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">Why it oscillates</div></div>
+              <ul>
+                <li>Learning rate too high</li>
+                <li>ε too large (updates too aggressive)</li>
+                <li>Batch/rollout too small → noisy advantages</li>
+                <li>Entropy collapses early</li>
+                <li>Critic not learning → bad baseline</li>
+              </ul>
+            </div>
+            <div class="card">
+              <div class="head"><span class="badge good"></span><div class="label">What to track with return</div></div>
+              <ul>
+                <li><b>Entropy</b>: is exploration collapsing?</li>
+                <li><b>Ratio / clip fraction</b>: are updates too big?</li>
+                <li><b>Value loss</b>: is critic stable?</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="s12">
+          <h2>12) Hyperparameter cheat-sheet <small>fast classroom fixes</small></h2>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge bad"></span><div class="label">Rewards jump then crash</div></div>
+              <ul>
+                <li>Lower policy learning rate</li>
+                <li>Lower ε (clip range)</li>
+                <li>Increase rollout steps / batch size</li>
+              </ul>
+            </div>
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">Learning too slow</div></div>
+              <ul>
+                <li>Increase rollout steps</li>
+                <li>Increase training epochs slightly</li>
+                <li>Increase entropy coefficient early</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="s13">
+          <h2>13) Two real-world examples <small>same math, different product</small></h2>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Retail coupon (delayed effect)</div></div>
+              <p><b>Action:</b> send coupon / no coupon.</p>
+              <p><b>Reward:</b> margin − coupon cost if purchased.</p>
+              <p><b>Delayed effect:</b> too many coupons → “addiction” → lower future margin.</p>
+              <div class="callout"><b>Teach line:</b> “γ makes the agent care about long-term brand health, not just today’s conversions.”</div>
+            </div>
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Semantic search + data contracts</div></div>
+              <p><b>Action:</b> vector vs hybrid, strict contract vs lenient, top-k.</p>
+              <p><b>Reward:</b> user satisfaction + downstream validation success.</p>
+              <p><b>Delayed effect:</b> lenient retrieval may look good now but increases failures later.</p>
+              <div class="callout"><b>Teach line:</b> “PPO clipping is reliability engineering for policy updates.”</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="s14">
+          <h2>14) Recap <small>what students must remember</small></h2>
+          <ul>
+            <li>Tabular RL memorizes; neural RL generalizes.</li>
+            <li>State is a vector: $s\in\mathbb{R}^d$.</li>
+            <li>We learn $Q_\theta(s,a)$ or directly $\pi_\theta(a|s)$ (used in Proximal Policy Optimization (PPO)).</li>
+            <li>Critic provides baseline $V_\phi(s)$; advantage is “better than expected”.</li>
+            <li>GAE(λ) smooths advantage using TD errors.</li>
+            <li>Proximal Policy Optimization (PPO) clipping keeps updates safe and stable.</li>
+          </ul>
+          <p style="margin-top:10px;"><a href="#p1">Back to top ↑</a></p>
+        </section>
+
+        <div class="footer">
+          If formulas don’t render: allow internet for MathJax CDN once, then Print/Save as PDF.
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script>
+    function jump(sel){
+      const el = document.querySelector(sel);
+      if(!el) return;
+      el.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+    const anchors = ["#s1","#s2","#s3","#s4","#s5","#s6","#s7","#s8","#s9","#s10","#s11","#s12","#s13","#s14"];
+    function currentIndex(){
+      const y = window.scrollY;
+      let best = 0;
+      for(let i=0;i<anchors.length;i++){
+        const el = document.querySelector(anchors[i]);
+        if(!el) continue;
+        if(el.getBoundingClientRect().top + window.scrollY - 120 <= y) best = i;
+      }
+      return best;
+    }
+    document.addEventListener('keydown', (e)=>{
+      if(e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+      if(e.key === 'j' || e.key === 'J') jump(anchors[Math.min(currentIndex()+1, anchors.length-1)]);
+      if(e.key === 'k' || e.key === 'K') jump(anchors[Math.max(currentIndex()-1, 0)]);
+    });
+  </script>
+</body>
+</html>

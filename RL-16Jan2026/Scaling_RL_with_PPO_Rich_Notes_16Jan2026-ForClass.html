@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Scaling RL with Neural Networks & PPO — Rich Teaching Pack (16 Jan 2026)</title>
+
+  <!-- Math rendering (MathJax) -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$','$$'], ['\\[','\\]']] },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:rgba(255,255,255,.06);
+      --stroke:rgba(255,255,255,.12);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.72);
+      --muted2:rgba(255,255,255,.56);
+      --accent:#7C3AED;
+      --accent2:#06B6D4;
+      --good:#22C55E;
+      --warn:#F59E0B;
+      --bad:#EF4444;
+      --shadow:0 18px 70px rgba(0,0,0,.45);
+      --r1:14px; --r2:22px;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --max: 1140px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0; font-family:var(--sans); color:var(--text); line-height:1.55;
+      background:
+        radial-gradient(1200px 800px at 15% 5%, rgba(124,58,237,.35), transparent 60%),
+        radial-gradient(900px 700px at 85% 20%, rgba(6,182,212,.25), transparent 55%),
+        radial-gradient(900px 700px at 70% 95%, rgba(34,197,94,.14), transparent 60%),
+        var(--bg);
+    }
+    a{ color: rgba(255,255,255,.92); text-decoration:none; }
+    a:hover{ text-decoration: underline; text-underline-offset: 4px; }
+    .wrap{ max-width:var(--max); margin:0 auto; padding:24px 18px 70px; }
+
+    .topbar{
+      position:sticky; top:0; z-index:30; backdrop-filter: blur(12px);
+      background: linear-gradient(180deg, rgba(11,16,32,.92), rgba(11,16,32,.70));
+      border-bottom: 1px solid rgba(255,255,255,.10);
+    }
+    .topbar .inner{
+      max-width:var(--max); margin:0 auto; padding:10px 18px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    }
+    .brand{ display:flex; align-items:center; gap:10px; font-weight:780; letter-spacing:.2px; }
+    .dot{ width:10px;height:10px;border-radius:99px;background:var(--accent); box-shadow:0 0 0 6px rgba(124,58,237,.18); }
+    .actions{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .btn{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: transform .06s ease, background .15s ease;
+      user-select:none;
+    }
+    .btn:hover{ background: rgba(255,255,255,.10); }
+    .btn:active{ transform: scale(.98); }
+    .btn.primary{
+      border-color: rgba(124,58,237,.45);
+      background: linear-gradient(180deg, rgba(124,58,237,.24), rgba(124,58,237,.10));
+    }
+    .kbd{
+      font-family: var(--mono); font-size: 11px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.20);
+      padding: 2px 6px;
+      border-radius: 8px;
+      color: rgba(255,255,255,.82);
+    }
+
+    .hero{
+      border:1px solid var(--stroke);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border-radius: var(--r2);
+      box-shadow: var(--shadow);
+      padding: 20px 20px 16px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(900px 400px at 10% 10%, rgba(124,58,237,.30), transparent 60%),
+                  radial-gradient(700px 360px at 95% 20%, rgba(6,182,212,.22), transparent 60%);
+      opacity:.55; pointer-events:none;
+    }
+    .hero > *{ position:relative; }
+    .pills{ display:flex; gap:10px; flex-wrap:wrap; }
+    .pill{
+      font-size: 12px;
+      color: rgba(255,255,255,.78);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      padding: 6px 10px;
+      border-radius: 999px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    h1{
+      margin: 12px 0 8px;
+      font-size: clamp(28px, 3.2vw, 40px);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+    .sub{ margin:0 0 14px; color:var(--muted); max-width:100ch; font-size:14px; }
+    .metaRow{ display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; color:var(--muted2); font-size:12px; }
+
+    .layout{ display:grid; grid-template-columns: 320px 1fr; gap: 14px; margin-top: 16px; }
+    @media (max-width: 980px){ .layout{ grid-template-columns: 1fr; } }
+
+    .side{
+      border: 1px solid var(--stroke);
+      border-radius: var(--r2);
+      background: rgba(255,255,255,.04);
+      overflow:hidden;
+      position: sticky; top: 72px;
+      height: fit-content;
+    }
+    @media (max-width: 980px){ .side{ position: relative; top: 0; } }
+    .sideHeader{
+      padding: 14px 14px 10px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+    }
+    .sideHeader .title{ font-weight: 750; letter-spacing: .2px; }
+    .sideHeader .hint{ color: var(--muted2); font-size: 12px; }
+    .toc{ padding: 10px 10px 12px; display:flex; flex-direction:column; gap:6px; }
+    .toc a{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 10px 10px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.14);
+      color: rgba(255,255,255,.88);
+      font-size: 13px;
+    }
+    .toc a:hover{ background: rgba(255,255,255,.06); text-decoration:none; }
+    .chip{
+      font-size: 11px;
+      border:1px solid rgba(255,255,255,.12);
+      padding: 2px 7px;
+      border-radius: 999px;
+      color: rgba(255,255,255,.72);
+      background: rgba(255,255,255,.04);
+      font-family: var(--mono);
+    }
+
+    section{
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
+      border-radius: var(--r2);
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+    section h2{
+      margin:0 0 8px;
+      font-size: 20px;
+      letter-spacing: .2px;
+      display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    }
+    section h2 small{ font-size: 12px; color: var(--muted2); letter-spacing: .08em; text-transform: uppercase; }
+    h3{ margin: 14px 0 8px; font-size: 16px; }
+    p, li{ color: var(--muted); }
+    ul{ margin: 6px 0 0 18px; }
+
+    .grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    @media (max-width: 980px){ .grid{ grid-template-columns: 1fr; } }
+    .card{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .head{ display:flex; align-items:center; gap:10px; margin-bottom: 6px; }
+    .badge{ width:10px;height:10px;border-radius:999px;background:var(--accent); box-shadow:0 0 0 6px rgba(124,58,237,.16); }
+    .badge.good{ background: var(--good); box-shadow:0 0 0 6px rgba(34,197,94,.13); }
+    .badge.warn{ background: var(--warn); box-shadow:0 0 0 6px rgba(245,158,11,.13); }
+    .badge.bad{ background: var(--bad); box-shadow:0 0 0 6px rgba(239,68,68,.13); }
+    .label{ font-weight:800; letter-spacing:.08em; text-transform:uppercase; font-size:12px; color:rgba(255,255,255,.85); }
+
+    .math{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.22);
+      border-radius: 14px;
+      padding: 10px 12px;
+      overflow:auto;
+      margin: 10px 0;
+    }
+    .code{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.24);
+      border-radius: 14px;
+      padding: 12px 12px;
+      overflow:auto;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: rgba(255,255,255,.90);
+      white-space: pre;
+    }
+    details{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.16);
+      border-radius: 16px;
+      padding: 12px 12px;
+      margin-top: 10px;
+    }
+    details summary{
+      cursor:pointer;
+      list-style:none;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 12px;
+      font-weight: 700;
+      color: rgba(255,255,255,.90);
+    }
+    details summary::-webkit-details-marker{ display:none; }
+    details summary .meta{ font-weight:600; color:var(--muted2); font-size:12px; }
+    .caret{
+      width:18px;height:18px;border-radius:10px;
+      border:1px solid rgba(255,255,255,.12);
+      display:grid; place-items:center;
+      background: rgba(255,255,255,.05);
+    }
+    details[open] .caret svg{ transform: rotate(180deg); }
+
+    .footer{ text-align:center; margin-top:18px; color:var(--muted2); font-size:12px; }
+
+    @media print{
+      .topbar{ display:none; }
+      body{ background:white; color:#111; }
+      .hero, section, .side{ box-shadow:none; background:white; border-color:#ddd; }
+      p,li{ color:#222; }
+      .card, .math, .code, details{ background:white; border-color:#ddd; }
+      a{ color:#111; text-decoration: underline; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="inner">
+      <div class="brand">
+        <span class="dot"></span>
+        <span>Scaling RL with Neural Networks & PPO</span>
+        <span class="kbd">16 Jan 2026</span>
+      </div>
+      <div class="actions">
+        <button class="btn" onclick="jump('#toc')">TOC</button>
+        <button class="btn" onclick="jump('#p1')">Start</button>
+        <button class="btn primary" onclick="window.print()">Print / Save as PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="hero" id="p1">
+      <div class="pills">
+        <div class="pill">Rich Teaching Pack</div>
+        <div class="pill">Neural Approximation</div>
+        <div class="pill">Actor–Critic</div>
+        <div class="pill">GAE(λ)</div>
+        <div class="pill">PPO Clipping</div>
+        <div class="pill">Reward Curves</div>
+      </div>
+      <h1>Scaling RL with Neural Networks & PPO</h1>
+      <p class="sub">
+        Use this as your <b>class notes + teaching narrative</b>. Every formula has a plain-English explanation and a worked numeric example.
+        Includes a <b>Retail Coupon</b> scenario and a <b>Semantic Search + Data Contract</b> scenario (your enterprise flavor).
+      </p>
+      <div class="metaRow">
+        <div>Audience: engineers (4–6 yrs) • Emphasis: stability + what to tune</div>
+        <div>Shortcuts: <span class="kbd">J</span>/<span class="kbd">K</span> to jump sections</div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <aside class="side" id="toc">
+        <div class="sideHeader">
+          <div>
+            <div class="title">Table of Contents</div>
+            <div class="hint">Jump fast during class</div>
+          </div>
+          <div class="hint"><span class="kbd">Ctrl/Cmd+P</span></div>
+        </div>
+        <nav class="toc">
+          <a href="#s1"><span>1) Why tabular RL doesn’t scale</span><span class="chip">Q-table</span></a>
+          <a href="#s2"><span>2) Presenting “state” properly</span><span class="chip">s ∈ R^d</span></a>
+          <a href="#s3"><span>3) Neural function approximation</span><span class="chip">Qθ / πθ</span></a>
+          <a href="#s4"><span>4) Actor–critic networks</span><span class="chip">πθ, Vϕ</span></a>
+          <a href="#s5"><span>5) Advantage (baseline)</span><span class="chip">A=R−V</span></a>
+          <a href="#s6"><span>6) GAE(λ) with numbers</span><span class="chip">δt, At</span></a>
+          <a href="#s7"><span>7) PPO ratio + clipping</span><span class="chip">r, ε</span></a>
+          <a href="#s8"><span>8) PPO total loss</span><span class="chip">policy+value+H</span></a>
+          <a href="#s9"><span>9) Training loop + “Iter” meaning</span><span class="chip">rollout</span></a>
+          <a href="#s10"><span>10) Reading reward curve output</span><span class="chip">logs</span></a>
+          <a href="#s11"><span>11) Hyperparameter cheat-sheet</span><span class="chip">tuning</span></a>
+          <a href="#s12"><span>12) Case studies</span><span class="chip">retail+data</span></a>
+          <a href="#s13"><span>13) Talk-track scripts</span><span class="chip">say this</span></a>
+          <a href="#s14"><span>14) Recap</span><span class="chip">summary</span></a>
+        </nav>
+      </aside>
+
+      <main>
+
+        <section id="s1">
+          <h2>1) Why tabular RL doesn’t scale <small>memorize vs generalize</small></h2>
+
+          <p>Tabular Q-learning stores one number for every (state, action) pair:</p>
+          <div class="math">$$Q(s,a)\in\mathbb{R}$$</div>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Small real-world: Retail coupon</div></div>
+              <p>
+                You’re deciding: <b>SEND_COUPON</b> vs <b>NO_COUPON</b> for each customer each day.
+                State isn’t just “Loyal vs Price-sensitive”. It’s a combination of:
+                recency, frequency, average basket, coupon sensitivity, channel mix, etc.
+              </p>
+              <p>
+                If any feature is continuous (like “time since last purchase”), distinct states become effectively infinite.
+                That means you rarely visit the same state twice → Q-table stays sparse/noisy.
+              </p>
+            </div>
+
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">State explosion (worked)</div></div>
+              <ul>
+                <li>recency_days: 0..365 → 366 values</li>
+                <li>freq_30d: 0..30 → 31 values</li>
+                <li>avg_basket_bucket: 50</li>
+                <li>coupon_sensitivity_bucket: 20</li>
+                <li>segment: 10</li>
+              </ul>
+              <div class="math">$$|S|=366\times31\times50\times20\times10\approx 113{,}460{,}000$$</div>
+              <p>With 2 actions: about <b>226,920,000</b> Q-values.</p>
+            </div>
+          </div>
+
+          <details>
+            <summary>
+              Why is freq_30d = 31 values?
+              <span class="meta">0..30 inclusive ⇒ 31</span>
+              <span class="caret" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+                  <path d="M5 7l5 6 5-6" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+            </summary>
+            <div style="margin-top:10px;">
+              <p>
+                freq_30d is the count of purchases in the last 30 days.
+                Minimum = 0 (no purchases). Maximum = 30 (one per day for 30 days).
+              </p>
+              <div class="math">$$\{0,1,2,\dots,30\}\Rightarrow 30-0+1=31$$</div>
+              <p>In practice you often bucket it more (0,1,2–3,4–6,7+) to reduce state explosion.</p>
+            </div>
+          </details>
+
+          <div class="card" style="margin-top:12px;">
+            <div class="head"><span class="badge good"></span><div class="label">Key punchline (tell students)</div></div>
+            <p><b>Tabular RL memorizes. Neural RL generalizes.</b></p>
+          </div>
+        </section>
+
+        <section id="s2">
+          <h2>2) Presenting “state” properly <small>from business reality → vector</small></h2>
+
+          <p>At scale, we represent state as a feature vector:</p>
+          <div class="math">$$s\in\mathbb{R}^d$$</div>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Retail coupon state example</div></div>
+              <div class="math">$$s=[\text{recency},\ \text{freq},\ \text{basket},\ \text{sensitivity},\ \text{addiction}]$$</div>
+              <p>Normalize for stable learning:</p>
+              <div class="code">recency_norm = recency_days / 365.0
+freq_norm    = min(freq_30d, 30) / 30.0
+basket_norm  = clip(avg_basket / 500.0, 0, 1)</div>
+            </div>
+
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">State design checklist</div></div>
+              <ul>
+                <li><b>Stable:</b> avoid features that change meaning week-to-week (schema drift).</li>
+                <li><b>Actionable:</b> features that influence the decision.</li>
+                <li><b>Safe:</b> avoid PII leakage; use aggregates/buckets.</li>
+                <li><b>Markov-ish:</b> include enough history so next step is predictable.</li>
+              </ul>
+            </div>
+          </div>
+
+          <details>
+            <summary>
+              “State” for enterprise search + data contracts
+              <span class="meta">your enterprise example</span>
+              <span class="caret"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7l5 6 5-6" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </summary>
+            <div style="margin-top:10px;">
+              <p>Example state vector for a semantic search agent:</p>
+              <div class="math">$$s=[\text{query_length},\ \text{time_intent},\ \text{finance_intent},\ \text{role_onehot}]$$</div>
+              <p>
+                The policy chooses retrieval settings (hybrid vs vector, strict contract vs lenient, top-k size).
+                Reward comes from user satisfaction and downstream validation success.
+              </p>
+            </div>
+          </details>
+        </section>
+
+        <section id="s3">
+          <h2>3) Neural function approximation <small>replace the Q-table</small></h2>
+
+          <p>We replace the table with a learnable function parameterized by weights $\theta$.</p>
+
+          <h3>Option A: approximate Q-values</h3>
+          <div class="math">$$Q_\theta(s,a)\approx Q(s,a)$$</div>
+          <p>Interpretation: Input (state, action) → Output predicted long-run profit.</p>
+
+          <h3>Option B: learn policy directly (PPO)</h3>
+          <div class="math">$$\pi_\theta(a\mid s)$$</div>
+          <p>Interpretation: Input state → Output probability distribution over actions.</p>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge good"></span><div class="label">Why this scales</div></div>
+              <p>
+                The network learns patterns: similar states share parameters.
+                So it can generalize to states you never observed exactly.
+              </p>
+            </div>
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Retail intuition</div></div>
+              <p>
+                If it learned “high sensitivity + high recency → coupon helps”, that rule applies to many customers.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="s4">
+          <h2>4) Actor–critic networks <small>two jobs</small></h2>
+
+          <p>PPO is commonly implemented as actor–critic:</p>
+
+          <h3>Actor (policy)</h3>
+          <div class="math">$$\pi_\theta(a\mid s)=\text{softmax}(f_\theta(s))_a$$</div>
+
+          <h3>Critic (value)</h3>
+          <div class="math">$$V_\phi(s)\approx \mathbb{E}\left[\sum_{t=0}^\infty\gamma^t r_t\ \middle|\ s_0=s\right]$$</div>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Why critic exists</div></div>
+              <p>
+                Policy gradients can be very noisy. The critic provides an “expected outcome baseline”
+                so learning uses “better/worse than expected” rather than raw reward.
+              </p>
+            </div>
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">Stochastic policy example</div></div>
+              <div class="code">Actions: [NO_COUPON, SEND_COUPON]
+π(a|s) = [0.72, 0.28]
+
+Meaning: mostly no coupon, but sometimes coupon to explore and learn.</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="s5">
+          <h2>5) Advantage + baseline <small>the learning signal</small></h2>
+
+          <p>Advantage answers: “Was this action better than expected for this state?”</p>
+          <div class="math">$$A(s_t,a_t)=Q(s_t,a_t)-V(s_t)$$</div>
+
+          <p>In practice, we use a return estimate $R_t$:</p>
+          <div class="math">$$A_t\approx R_t - V_\phi(s_t)$$</div>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge good"></span><div class="label">Worked example (positive)</div></div>
+              <ul>
+                <li>Critic predicts: $V(s_t)=0.30$</li>
+                <li>Observed return: $R_t=0.90$</li>
+              </ul>
+              <div class="math">$$A_t=0.90-0.30=0.60$$</div>
+              <p>Positive advantage → increase probability of chosen action.</p>
+            </div>
+            <div class="card">
+              <div class="head"><span class="badge bad"></span><div class="label">Worked example (negative)</div></div>
+              <ul>
+                <li>$V(s_t)=0.30$</li>
+                <li>$R_t=0.05$</li>
+              </ul>
+              <div class="math">$$A_t=0.05-0.30=-0.25$$</div>
+              <p>Negative advantage → decrease probability of chosen action.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="s6">
+          <h2>6) GAE(λ) — explained with numbers <small>stable advantages</small></h2>
+
+          <p>GAE uses TD residual (“surprise”) and smooths over time.</p>
+
+          <div class="math">$$\delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$$</div>
+          <div class="math">$$A_t = \sum_{l=0}^{\infty}(\gamma\lambda)^l\delta_{t+l}$$</div>
+
+          <details open>
+            <summary>
+              Mini worked example (3 steps)
+              <span class="meta">compute δ and A</span>
+              <span class="caret"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7l5 6 5-6" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </summary>
+            <div style="margin-top:10px;">
+              <p>Assume $\gamma=0.99$, $\lambda=0.95$.</p>
+              <div class="code">t        0      1      2
+r_t    0.20   0.00   0.60
+V(s)   0.30   0.25   0.40
+V(s+1) 0.25   0.40   0.10</div>
+
+              <div class="math">$$\delta_0=0.20+0.99(0.25)-0.30=0.1475$$</div>
+              <div class="math">$$\delta_1=0.00+0.99(0.40)-0.25=0.1460$$</div>
+              <div class="math">$$\delta_2=0.60+0.99(0.10)-0.40=0.2990$$</div>
+
+              <p>Compute $A_0\approx \delta_0+(\gamma\lambda)\delta_1+(\gamma\lambda)^2\delta_2$</p>
+              <div class="math">$$\gamma\lambda=0.99\times0.95=0.9405$$</div>
+              <div class="math">$$A_0\approx 0.1475 + 0.9405(0.1460) + 0.9405^2(0.2990)\approx 0.551$$</div>
+
+              <p><b>Interpretation:</b> Advantage is positive → the trajectory was better than expected → PPO nudges policy toward these actions.</p>
+            </div>
+          </details>
+
+          <div class="card" style="margin-top:12px;">
+            <div class="head"><span class="badge warn"></span><div class="label">λ trade-off (tell students)</div></div>
+            <p>
+              $\lambda=0$ → more bias, less variance (short-sighted but stable).  
+              $\lambda\to 1$ → less bias, more variance (long-horizon but noisy).
+              Most PPO defaults: $\gamma=0.99,\ \lambda=0.95$.
+            </p>
+          </div>
+        </section>
+
+        <section id="s7">
+          <h2>7) PPO ratio + clipping <small>safe policy updates</small></h2>
+
+          <p>PPO limits how much the new policy can differ from the old policy using a probability ratio:</p>
+          <div class="math">$$r_t(\theta)=\frac{\pi_\theta(a_t\mid s_t)}{\pi_{\theta_{old}}(a_t\mid s_t)}$$</div>
+
+          <p>Clipped objective:</p>
+          <div class="math">$$L^{CLIP}(\theta)=\mathbb{E}\left[\min\left(r_tA_t,\ \text{clip}(r_t,1-\epsilon,1+\epsilon)A_t\right)\right]$$</div>
+
+          <details open>
+            <summary>
+              Worked clipping example (two cases)
+              <span class="meta">why “min” matters</span>
+              <span class="caret"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7l5 6 5-6" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </summary>
+            <div style="margin-top:10px;">
+              <p>Let $\epsilon=0.2$ so allowed range is $[0.8,1.2]$.</p>
+
+              <div class="grid">
+                <div class="card">
+                  <div class="head"><span class="badge good"></span><div class="label">Case A: positive advantage</div></div>
+                  <p>$A_t=+0.6$, old prob = 0.20, new prob = 0.34</p>
+                  <div class="math">$$r=0.34/0.20=1.70$$</div>
+                  <p>Unclipped: $rA=1.70\times0.6=1.02$</p>
+                  <p>Clipped ratio: $\min(1.70,1.2)=1.2$ → clipped term = $1.2\times0.6=0.72$</p>
+                  <p><b>PPO takes min:</b> $\min(1.02,0.72)=0.72$ → stops “too big” update.</p>
+                </div>
+
+                <div class="card">
+                  <div class="head"><span class="badge bad"></span><div class="label">Case B: negative advantage</div></div>
+                  <p>$A_t=-0.5$, old prob = 0.40, new prob = 0.10</p>
+                  <div class="math">$$r=0.10/0.40=0.25$$</div>
+                  <p>Unclipped: $rA=0.25\times(-0.5)=-0.125$</p>
+                  <p>Clipped ratio: $\max(0.25,0.8)=0.8$ → clipped term = $0.8\times(-0.5)=-0.4$</p>
+                  <p><b>PPO takes min:</b> $\min(-0.125,-0.4)=-0.4$ → stronger penalty for bad action.</p>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Business analogy</div></div>
+              <p>“Improve what works — but don’t swing strategy overnight.” Clipping is the guardrail.</p>
+            </div>
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">What ε does</div></div>
+              <ul>
+                <li>Higher ε → bigger updates (faster but unstable)</li>
+                <li>Lower ε → safer updates (stable but slower)</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="s8">
+          <h2>8) PPO total loss <small>policy + value + entropy</small></h2>
+
+          <p>In practice PPO optimizes a combination:</p>
+          <div class="math">$$\mathcal{L} = -L^{CLIP}(\theta) + c_1\cdot \mathcal{L}^{VF}(\phi) - c_2\cdot \mathcal{H}(\pi_\theta)$$</div>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Value loss</div></div>
+              <div class="math">$$\mathcal{L}^{VF}=(V_\phi(s_t)-R_t)^2$$</div>
+              <p>Better critic → better baseline → more stable advantages.</p>
+            </div>
+
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">Entropy bonus</div></div>
+              <div class="math">$$\mathcal{H}(\pi)=-\sum_a \pi(a\mid s)\log \pi(a\mid s)$$</div>
+              <div class="code">π=[0.50,0.50] → high entropy (explore)
+π=[0.95,0.05] → low entropy (exploit)</div>
+            </div>
+          </div>
+
+          <details>
+            <summary>
+              Practical diagnostic: entropy collapse
+              <span class="meta">why early collapse hurts</span>
+              <span class="caret"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7l5 6 5-6" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </summary>
+            <div style="margin-top:10px;">
+              <p>
+                If entropy goes near 0 too early, the policy becomes almost deterministic.
+                That can lock into a suboptimal strategy and create “reward curve bounce”.
+                Fixes: slightly higher entropy coefficient, lower learning rate, fewer epochs.
+              </p>
+            </div>
+          </details>
+        </section>
+
+        <section id="s9">
+          <h2>9) PPO training loop + what “Iter” means <small>the update cycle</small></h2>
+
+          <div class="card">
+            <div class="head"><span class="badge"></span><div class="label">One PPO iteration (Iter)</div></div>
+            <ol style="color:var(--muted); margin:6px 0 0 18px;">
+              <li>Collect rollout of T steps using current policy snapshot $\pi_{\theta_{old}}$</li>
+              <li>Compute returns $R_t$ and advantages $A_t$ (often GAE)</li>
+              <li>Do K epochs of minibatch SGD using PPO clipped objective</li>
+              <li>Update snapshot: $\theta_{old}\leftarrow\theta$</li>
+            </ol>
+          </div>
+
+          <details>
+            <summary>
+              What is “block” in logs?
+              <span class="meta">T-step segment</span>
+              <span class="caret"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7l5 6 5-6" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </summary>
+            <div style="margin-top:10px;">
+              <p>
+                Many environments are continuing (no clear episode). So we slice experience into fixed chunks of T steps called “blocks”.
+                Return per block = sum of rewards in that segment.
+              </p>
+            </div>
+          </details>
+        </section>
+
+        <section id="s10">
+          <h2>10) Reading reward curve output <small>interpret your prints</small></h2>
+
+          <div class="code">Iter  10 | recent mean return (last 10 blocks) =   881.30
+Iter  20 | recent mean return (last 10 blocks) =   993.61
+Iter  30 | recent mean return (last 10 blocks) =   813.45
+Iter  40 | recent mean return (last 10 blocks) =   635.08
+Iter  50 | recent mean return (last 10 blocks) =   886.53</div>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge good"></span><div class="label">Meaning</div></div>
+              <ul>
+                <li><b>Iter 10</b>: after 10 update cycles</li>
+                <li><b>last 10 blocks</b>: moving window of 10 rollouts</li>
+                <li><b>recent mean return</b>: smoothed performance signal</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">Why it goes up/down</div></div>
+              <p>
+                RL returns are noisy. Large oscillations can indicate updates are too aggressive or advantage estimates are noisy.
+              </p>
+              <ul>
+                <li>LR too high</li>
+                <li>ε too large</li>
+                <li>Batch/rollout too small</li>
+                <li>Entropy collapsed early</li>
+                <li>Critic not learning</li>
+              </ul>
+            </div>
+          </div>
+
+          <details>
+            <summary>
+              The “diagnostic trio” to show students
+              <span class="meta">return + entropy + ratio</span>
+              <span class="caret"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7l5 6 5-6" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </summary>
+            <div style="margin-top:10px;">
+              <ul>
+                <li><b>Return curve:</b> improving on average?</li>
+                <li><b>Entropy:</b> exploration collapsing too early?</li>
+                <li><b>Ratio / clip fraction:</b> updates too big (lots of clipping) or too tiny (no clipping)?</li>
+              </ul>
+            </div>
+          </details>
+        </section>
+
+        <section id="s11">
+          <h2>11) Hyperparameter cheat-sheet <small>what to tune first</small></h2>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge bad"></span><div class="label">If rewards jump then crash</div></div>
+              <ul>
+                <li>Reduce policy LR (e.g., 3e-4 → 1e-4)</li>
+                <li>Reduce ε (0.2 → 0.1)</li>
+                <li>Increase rollout steps / batch size</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">If learning is too slow</div></div>
+              <ul>
+                <li>Increase rollout steps</li>
+                <li>Slightly increase epochs</li>
+                <li>Increase entropy coefficient early</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">If entropy collapses early</div></div>
+              <ul>
+                <li>Increase entropy coeff</li>
+                <li>Lower LR</li>
+                <li>Reduce epochs</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="head"><span class="badge bad"></span><div class="label">If value loss explodes</div></div>
+              <ul>
+                <li>Lower critic LR</li>
+                <li>Normalize rewards</li>
+                <li>Gradient clipping</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="s12">
+          <h2>12) Case studies <small>same PPO concepts</small></h2>
+
+          <h3>Case A: Retail couponing (delayed effects)</h3>
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Action</div></div>
+              <p>SEND_COUPON vs NO_COUPON (or discount level 0/5/10%).</p>
+            </div>
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">Delayed effect</div></div>
+              <p>Over-couponing creates “addiction”: customers wait for discounts → lower long-run profit.</p>
+            </div>
+          </div>
+
+          <h3>Case B: Semantic search + data contracts (safe retrieval)</h3>
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Action</div></div>
+              <p>Choose vector vs hybrid, strict vs lenient contracts, top-k size.</p>
+            </div>
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">Delayed effect</div></div>
+              <p>Lenient retrieval can “look good” now but increases downstream failures and compliance risk later.</p>
+            </div>
+          </div>
+
+          <details>
+            <summary>
+              Best one-liner bridge to enterprise safety
+              <span class="meta">use in class</span>
+              <span class="caret"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7l5 6 5-6" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </summary>
+            <div style="margin-top:10px;">
+              <p>
+                “PPO clipping is like reliability engineering for policy updates: it prevents unsafe side-effects caused by overreacting to noisy signals.”
+              </p>
+            </div>
+          </details>
+        </section>
+
+        <section id="s13">
+          <h2>13) Talk-track scripts <small>say this verbatim</small></h2>
+
+          <details open>
+            <summary>
+              60-second: why PPO exists
+              <span class="meta">ready script</span>
+              <span class="caret"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7l5 6 5-6" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </summary>
+            <div style="margin-top:10px;">
+              <p>
+                “Policy gradients increase the probability of actions that worked well. But if we change the policy too much in one update,
+                learning can collapse. PPO adds a guardrail: it clips how far the probability ratio can move. We still improve,
+                but we avoid huge swings — like changing a business strategy gradually rather than overnight.”
+              </p>
+            </div>
+          </details>
+
+          <details>
+            <summary>
+              45-second: advantage
+              <span class="meta">baseline intuition</span>
+              <span class="caret"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7l5 6 5-6" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </summary>
+            <div style="margin-top:10px;">
+              <p>
+                “Advantage is how much better than expected an outcome was. If the outcome was high but we already expected it to be high,
+                we don’t learn much. If it beat expectations, we learn a lot. The critic supplies the expectation baseline.”
+              </p>
+            </div>
+          </details>
+        </section>
+
+        <section id="s14">
+          <h2>14) Recap <small>what students must remember</small></h2>
+          <ul>
+            <li><b>Tabular RL memorizes</b> and fails with large/continuous state spaces.</li>
+            <li><b>Neural RL generalizes</b>: $Q_\theta(s,a)$ or $\pi_\theta(a\mid s)$.</li>
+            <li><b>Actor–critic</b>: actor chooses actions; critic predicts $V(s)$ baseline.</li>
+            <li><b>Advantage</b>: better/worse than expected signal.</li>
+            <li><b>GAE(λ)</b>: smoother advantage estimation using TD residuals.</li>
+            <li><b>PPO clipping</b>: stable updates via ratio $r$ and clip $\epsilon$.</li>
+            <li><b>Reward curve logs</b>: interpret Iter + moving averages; use entropy/ratio for diagnosis.</li>
+          </ul>
+          <p style="margin-top:10px;"><a href="#p1">Back to top ↑</a></p>
+        </section>
+
+        <div class="footer">
+          If formulas don’t render: ensure internet access for MathJax CDN, then print to PDF after the first successful load.
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script>
+    function jump(sel){
+      const el = document.querySelector(sel);
+      if(!el) return;
+      el.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+
+    // Keyboard shortcuts: J/K to jump between sections (useful while teaching)
+    const anchors = ["#s1","#s2","#s3","#s4","#s5","#s6","#s7","#s8","#s9","#s10","#s11","#s12","#s13","#s14"];
+    function currentIndex(){
+      const y = window.scrollY;
+      let best = 0;
+      for(let i=0;i<anchors.length;i++){
+        const el = document.querySelector(anchors[i]);
+        if(!el) continue;
+        if(el.getBoundingClientRect().top + window.scrollY - 120 <= y) best = i;
+      }
+      return best;
+    }
+    document.addEventListener('keydown', (e)=>{
+      if(e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+      if(e.key === 'j' || e.key === 'J'){
+        jump(anchors[Math.min(currentIndex()+1, anchors.length-1)]);
+      }
+      if(e.key === 'k' || e.key === 'K'){
+        jump(anchors[Math.max(currentIndex()-1, 0)]);
+      }
+    });
+  </script>
+</body>
+</html>

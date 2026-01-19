@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Scaling RL with Neural Networks & Proximal Policy Optimization (PPO) — Deep Teaching Notes</title>
+
+  <!-- MathJax for crisp formulas -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$','$$'], ['\\[','\\]']] },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+  <style>
+    :root{
+      --bg:#0b1020; --stroke:rgba(255,255,255,.12);
+      --text:rgba(255,255,255,.92); --muted:rgba(255,255,255,.72); --muted2:rgba(255,255,255,.56);
+      --accent:#7C3AED; --accent2:#06B6D4; --good:#22C55E; --warn:#F59E0B; --bad:#EF4444;
+      --shadow:0 18px 70px rgba(0,0,0,.45); --r2:22px;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --max: 1180px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0; font-family:var(--sans); color:var(--text); line-height:1.58;
+      background:
+        radial-gradient(1200px 800px at 15% 5%, rgba(124,58,237,.35), transparent 60%),
+        radial-gradient(900px 700px at 85% 20%, rgba(6,182,212,.25), transparent 55%),
+        radial-gradient(900px 700px at 70% 95%, rgba(34,197,94,.14), transparent 60%),
+        var(--bg);
+    }
+    .wrap{ max-width:var(--max); margin:0 auto; padding:24px 18px 72px; }
+    a{ color: rgba(255,255,255,.92); text-decoration:none; }
+    a:hover{ text-decoration: underline; text-underline-offset: 4px; }
+
+    .topbar{
+      position:sticky; top:0; z-index:30; backdrop-filter: blur(12px);
+      background: linear-gradient(180deg, rgba(11,16,32,.92), rgba(11,16,32,.70));
+      border-bottom: 1px solid rgba(255,255,255,.10);
+    }
+    .topbar .inner{
+      max-width:var(--max); margin:0 auto; padding:10px 18px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    }
+    .brand{ display:flex; align-items:center; gap:10px; font-weight:780; letter-spacing:.2px; }
+    .dot{ width:10px;height:10px;border-radius:99px;background:var(--accent); box-shadow:0 0 0 6px rgba(124,58,237,.18); }
+    .actions{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .btn{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: transform .06s ease, background .15s ease;
+      user-select:none;
+    }
+    .btn:hover{ background: rgba(255,255,255,.10); }
+    .btn:active{ transform: scale(.98); }
+    .btn.primary{
+      border-color: rgba(124,58,237,.45);
+      background: linear-gradient(180deg, rgba(124,58,237,.24), rgba(124,58,237,.10));
+    }
+    .kbd{
+      font-family: var(--mono); font-size: 11px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.20);
+      padding: 2px 6px;
+      border-radius: 8px;
+      color: rgba(255,255,255,.82);
+    }
+
+    .hero{
+      border:1px solid var(--stroke);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border-radius: var(--r2);
+      box-shadow: var(--shadow);
+      padding: 20px 20px 16px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(900px 400px at 10% 10%, rgba(124,58,237,.30), transparent 60%),
+                  radial-gradient(700px 360px at 95% 20%, rgba(6,182,212,.22), transparent 60%);
+      opacity:.55; pointer-events:none;
+    }
+    .hero > *{ position:relative; }
+    .pills{ display:flex; gap:10px; flex-wrap:wrap; }
+    .pill{
+      font-size: 12px; color: rgba(255,255,255,.78);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      padding: 6px 10px; border-radius: 999px;
+      letter-spacing: .08em; text-transform: uppercase;
+    }
+    h1{ margin: 12px 0 8px; font-size: clamp(28px, 3.2vw, 42px); letter-spacing: -0.02em; line-height: 1.1; }
+    .sub{ margin:0 0 14px; color:var(--muted); max-width:110ch; font-size:14px; }
+    .metaRow{ display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; color:var(--muted2); font-size:12px; }
+
+    .layout{ display:grid; grid-template-columns: 340px 1fr; gap: 14px; margin-top: 16px; }
+    @media (max-width: 980px){ .layout{ grid-template-columns: 1fr; } }
+
+    .side{
+      border: 1px solid var(--stroke);
+      border-radius: var(--r2);
+      background: rgba(255,255,255,.04);
+      overflow:hidden;
+      position: sticky; top: 72px;
+      height: fit-content;
+    }
+    @media (max-width: 980px){ .side{ position: relative; top: 0; } }
+    .sideHeader{
+      padding: 14px 14px 10px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+    }
+    .sideHeader .title{ font-weight: 750; letter-spacing: .2px; }
+    .sideHeader .hint{ color: var(--muted2); font-size: 12px; }
+    .toc{ padding: 10px 10px 12px; display:flex; flex-direction:column; gap:6px; }
+    .toc a{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 10px 10px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.14);
+      color: rgba(255,255,255,.88);
+      font-size: 13px;
+    }
+    .toc a:hover{ background: rgba(255,255,255,.06); text-decoration:none; }
+    .chip{
+      font-size: 11px;
+      border:1px solid rgba(255,255,255,.12);
+      padding: 2px 7px; border-radius: 999px;
+      color: rgba(255,255,255,.72);
+      background: rgba(255,255,255,.04);
+      font-family: var(--mono);
+    }
+
+    section{
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
+      border-radius: var(--r2);
+      padding: 18px; margin-bottom: 14px;
+    }
+    section h2{
+      margin:0 0 8px; font-size: 20px; letter-spacing: .2px;
+      display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    }
+    section h2 small{ font-size: 12px; color: var(--muted2); letter-spacing: .08em; text-transform: uppercase; }
+    h3{ margin: 14px 0 8px; font-size: 16px; }
+    p, li{ color: var(--muted); }
+    ul, ol{ margin: 6px 0 0 18px; }
+
+    .grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    @media (max-width: 980px){ .grid{ grid-template-columns: 1fr; } }
+    .card{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .head{ display:flex; align-items:center; gap:10px; margin-bottom: 6px; }
+    .badge{ width:10px;height:10px;border-radius:999px;background:var(--accent); box-shadow:0 0 0 6px rgba(124,58,237,.16); }
+    .badge.good{ background: var(--good); box-shadow:0 0 0 6px rgba(34,197,94,.13); }
+    .badge.warn{ background: var(--warn); box-shadow:0 0 0 6px rgba(245,158,11,.13); }
+    .badge.bad{ background: var(--bad); box-shadow:0 0 0 6px rgba(239,68,68,.13); }
+    .label{ font-weight:800; letter-spacing:.08em; text-transform:uppercase; font-size:12px; color:rgba(255,255,255,.85); }
+
+    .math{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.22);
+      border-radius: 14px;
+      padding: 10px 12px;
+      overflow:auto;
+      margin: 10px 0 8px;
+    }
+    .explain{
+      border:1px dashed rgba(255,255,255,.14);
+      background: rgba(255,255,255,.04);
+      border-radius: 14px;
+      padding: 10px 12px;
+      margin: 0 0 10px;
+      color: rgba(255,255,255,.78);
+    }
+    .explain b{ color: rgba(255,255,255,.92); }
+    .explain .mini{ margin-top: 6px; color: rgba(255,255,255,.72); }
+    .callout{
+      border:1px solid rgba(255,255,255,.12);
+      background: linear-gradient(180deg, rgba(124,58,237,.15), rgba(255,255,255,.03));
+      border-radius: 16px;
+      padding: 12px 12px;
+      margin-top: 10px;
+      color: rgba(255,255,255,.84);
+    }
+    .steps{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.14);
+      border-radius: 16px;
+      padding: 12px;
+      margin-top: 10px;
+    }
+    .step{
+      display:flex; gap:10px; align-items:flex-start;
+      padding: 10px 10px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      margin-bottom: 8px;
+    }
+    .num{
+      width:26px;height:26px;border-radius:999px;
+      background: rgba(6,182,212,.18);
+      border:1px solid rgba(6,182,212,.35);
+      display:grid; place-items:center;
+      font-weight:800;
+      color: rgba(255,255,255,.9);
+      flex: 0 0 auto;
+    }
+    .step .t{ font-weight:800; color: rgba(255,255,255,.92); }
+    .step .d{ color: rgba(255,255,255,.72); font-size: 13px; margin-top: 2px; }
+    .code{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.24);
+      border-radius: 14px;
+      padding: 12px 12px;
+      overflow:auto;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: rgba(255,255,255,.90);
+      white-space: pre;
+    }
+    .kpiRow{
+      display:grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px;
+    }
+    @media (max-width: 980px){ .kpiRow{ grid-template-columns: 1fr; } }
+    .kpi{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      border-radius: 16px;
+      padding: 12px;
+    }
+    .kpi .k{ font-size: 12px; color: var(--muted2); letter-spacing: .08em; text-transform: uppercase; }
+    .kpi .v{ font-size: 20px; font-weight: 850; margin-top: 4px; }
+    .kpi .h{ color: rgba(255,255,255,.70); font-size: 12.5px; margin-top: 2px; }
+
+    details{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.16);
+      border-radius: 16px;
+      padding: 12px 12px;
+      margin-top: 10px;
+    }
+    details summary{
+      cursor:pointer;
+      list-style:none;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 12px;
+      font-weight: 800;
+      color: rgba(255,255,255,.90);
+    }
+    details summary::-webkit-details-marker{ display:none; }
+    details summary .meta{ font-weight:650; color:var(--muted2); font-size:12px; }
+    .caret{
+      width:18px;height:18px;border-radius:10px;
+      border:1px solid rgba(255,255,255,.12);
+      display:grid; place-items:center;
+      background: rgba(255,255,255,.05);
+    }
+    details[open] .caret svg{ transform: rotate(180deg); }
+
+    .footer{ text-align:center; margin-top:18px; color:var(--muted2); font-size:12px; }
+
+    @media print{
+      .topbar{ display:none; }
+      body{ background:white; color:#111; }
+      .hero, section, .side{ box-shadow:none; background:white; border-color:#ddd; }
+      p,li{ color:#222; }
+      .card, .math, .code, details, .explain, .callout, .steps, .step, .kpi{ background:white; border-color:#ddd; }
+      a{ color:#111; text-decoration: underline; }
+      .num{ border-color:#bbb; background:#f2f2f2; color:#111; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="inner">
+      <div class="brand">
+        <span class="dot"></span>
+        <span>Deep Teaching Notes — Proximal Policy Optimization (PPO)</span>
+        <span class="kbd"></span>
+      </div>
+      <div class="actions">
+        <button class="btn" onclick="jump('#toc')">TOC</button>
+        <button class="btn" onclick="jump('#start')">Start</button>
+        <button class="btn primary" onclick="window.print()">Print / Save as PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="hero" id="start">
+      <div class="pills">
+        <div class="pill">Context + Formulas + Examples</div>
+        <div class="pill">Retail Coupon</div>
+        <div class="pill">Semantic Search + Data Contracts</div>
+        <div class="pill">Reward Curves</div>
+        <div class="pill">Proximal Policy Optimization (PPO)</div>
+      </div>
+      <h1>Scaling RL with Neural Networks & Proximal Policy Optimization (PPO)</h1>
+      <p class="sub">
+        These notes are designed to learn <b> end‑to‑end</b>, not just “show equations.”
+        Every concept answers: <b>What is it?</b> → <b>Why do we need it?</b> → <b>What does it do in training?</b>
+        → <b>How to read the formula in plain English</b> → <b>Small numeric example</b> → <b>What to debug when it breaks</b>.
+      </p>
+      <div class="metaRow">
+        <div>Audience: Developers (4–6 yrs) • Goal: intuition + production‑style stability</div>
+        <div>Shortcuts: <span class="kbd">J</span>/<span class="kbd">K</span> jump sections</div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <aside class="side" id="toc">
+        <div class="sideHeader">
+          <div>
+            <div class="title">Table of Contents</div>
+            <div class="hint">Fast navigation in class</div>
+          </div>
+          <div class="hint"><span class="kbd">Ctrl/Cmd+P</span></div>
+        </div>
+        <nav class="toc">
+          <a href="#s1"><span>1) Problem framing</span><span class="chip">why RL</span></a>
+          <a href="#s2"><span>2) Why tabular RL fails</span><span class="chip">Q‑table</span></a>
+          <a href="#s3"><span>3) States as vectors</span><span class="chip">features</span></a>
+          <a href="#s4"><span>4) Neural approximation</span><span class="chip">Qθ / πθ</span></a>
+          <a href="#s5"><span>5) Actor–Critic roles</span><span class="chip">actor/critic</span></a>
+          <a href="#s6"><span>6) Returns + discount</span><span class="chip">G, γ</span></a>
+          <a href="#s7"><span>7) Advantage</span><span class="chip">A</span></a>
+          <a href="#s8"><span>8) TD error + GAE(λ)</span><span class="chip">δ, λ</span></a>
+          <a href="#s9"><span>9) PPO ratio + clipping</span><span class="chip">r, ε</span></a>
+          <a href="#s10"><span>10) PPO loss (full)</span><span class="chip">policy+V+H</span></a>
+          <a href="#s11"><span>11) The PPO training loop</span><span class="chip">Iter</span></a>
+          <a href="#s12"><span>12) Reading reward logs</span><span class="chip">mean return</span></a>
+          <a href="#s13"><span>13) What to tune</span><span class="chip">debug</span></a>
+          <a href="#s14"><span>14) Two real examples</span><span class="chip">retail+data</span></a>
+          <a href="#s15"><span>15) Recap + talk track</span><span class="chip">teach</span></a>
+        </nav>
+      </aside>
+
+      <main>
+
+        <!-- 1) Framing -->
+        <section id="s1">
+          <h2>1) Problem framing <small>what we are solving</small></h2>
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Retail coupon decision</div></div>
+              <p><b>Decision:</b> send coupon or not (daily / weekly).</p>
+              <p><b>Short-term benefit:</b> coupon increases conversion probability.</p>
+              <p><b>Long-term risk:</b> customers get trained to wait for discounts → margin erosion.</p>
+              <div class="callout"><b>Teaching hook:</b> “We are optimizing <i>customer lifetime profit</i>, not today’s sale.”</div>
+            </div>
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Semantic search decision</div></div>
+              <p><b>Decision:</b> retrieval strategy (vector vs hybrid, strict vs lenient contracts, top‑k).</p>
+              <p><b>Short-term benefit:</b> more results may look “better” to the user.</p>
+              <p><b>Long-term risk:</b> weak contracts → downstream breakages → reliability issues and compliance risk.</p>
+              <div class="callout"><b>Teaching hook:</b> “We optimize <i>good answers with low risk</i>, not just ‘many results’.”</div>
+            </div>
+          </div>
+
+          <div class="steps">
+            <div class="step">
+              <div class="num">1</div>
+              <div>
+                <div class="t">Why RL here?</div>
+                <div class="d">Because decisions affect future outcomes. Coupons change customer behavior; retrieval affects downstream system health.</div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="num">2</div>
+              <div>
+                <div class="t">What makes this “hard”?</div>
+                <div class="d">We cannot write a perfect rule because customer responses are stochastic and the state space is huge.</div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="num">3</div>
+              <div>
+                <div class="t">What do we learn?</div>
+                <div class="d">A policy: a mapping from state → action probabilities (what to do in each situation).</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2) Tabular fails -->
+        <section id="s2">
+          <h2>2) Why tabular RL fails at scale <small>the table becomes impossible</small></h2>
+
+          <p>Tabular Q-learning stores one number for every (state, action):</p>
+          <div class="math">$$Q(s,a)\in\mathbb{R}$$</div>
+          <div class="explain">
+            <b>Plain English (how to say):</b> “Q of s and a is a score: if I do action a in situation s, what long-term return do I expect?”
+            <div class="mini"><b>Mini example:</b> Q(“loyal”, send)=7.0 vs Q(“loyal”, no)=9.5 → coupon is not worth it for loyal customers.</div>
+          </div>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">Memory cost</div></div>
+              <p>If you have 1,000,000 states and 20 actions:</p>
+              <div class="math">$$\text{Q-values} = 1{,}000{,}000 \times 20 = 20{,}000{,}000$$</div>
+              <div class="explain">
+                <b>Plain English:</b> “You must store 20 million numbers. And you must learn each of them from experience.”
+                <div class="mini"><b>Mini example:</b> Most customers will never visit the exact same state twice → values stay noisy.</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="head"><span class="badge bad"></span><div class="label">Data sparsity</div></div>
+              <p>Even if memory is okay, the bigger problem is <b>learning</b>: you need enough visits to estimate each Q(s,a).</p>
+              <div class="callout"><b>Important line:</b> “Tables need repetition real life gives variety.”</div>
+            </div>
+          </div>
+
+          <details>
+            <summary>
+              Worked retail state explosion
+              <span class="meta">why discretizing still hurts</span>
+              <span class="caret"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7l5 6 5-6" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </summary>
+            <div style="margin-top:10px;">
+              <p>Suppose we discretize customer state into buckets:</p>
+              <div class="code">recency_days:   0..365   => 366 values
+freq_30d:       0..30    => 31 values
+basket_bucket:  50 buckets
+sensitivity:    20 buckets
+segment:        10 values</div>
+              <div class="math">$$|S|=366\times31\times50\times20\times10\approx 113{,}460{,}000$$</div>
+              <div class="explain">
+                <b>Plain English:</b> “Even with buckets, we create 113 million possible situations.”
+                <div class="mini"><b>Mini example:</b> With 2 actions, you need ~227 million Q entries.</div>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <!-- 3) State vectors -->
+        <section id="s3">
+          <h2>3) States as vectors <small>what the network actually sees</small></h2>
+
+          <p>Instead of a lookup key, we feed a numeric vector:</p>
+          <div class="math">$$s\in\mathbb{R}^d$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “State is a list of d numbers that summarize the situation.”
+            <div class="mini"><b>Mini example:</b> d=6 could include recency, frequency, spend, sensitivity, and two one-hot flags.</div>
+          </div>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Retail coupon: state design</div></div>
+              <p>Good features are <b>decision-relevant</b> (they change what action you should take).</p>
+              <div class="code">s = [
+  recency_norm,         # 0..1
+  freq_30d_norm,        # 0..1
+  avg_basket_norm,      # 0..1
+  coupon_sensitivity,   # 0..1
+  addiction_score       # 0..1 (latent or estimated)
+]</div>
+              <div class="callout"><b>Important line:</b> “We don’t need every detail—only signals that change the decision.”</div>
+            </div>
+
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Semantic search: state design</div></div>
+              <p>We can encode query intent and user role:</p>
+              <div class="code">s = [
+  query_len_norm,
+  time_intent,          # 0/1
+  finance_intent,       # 0/1
+  role_analyst, role_engineer, role_exec  # one-hot
+]</div>
+              <div class="callout"><b>Important line:</b> “Same policy network can learn different behavior for different user roles.”</div>
+            </div>
+          </div>
+
+          <details>
+            <summary>
+              Why normalization matters (very practical)
+              <span class="meta">stability</span>
+              <span class="caret"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7l5 6 5-6" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </summary>
+            <div style="margin-top:10px;">
+              <p>Without normalization, gradients can be dominated by large-scale features.</p>
+              <div class="code">bad:  recency_days = 240   (scale ~100s)
+good: recency_norm = 240/365 ≈ 0.66 (scale ~1)</div>
+              <div class="callout"><b>Point to Note:</b> “Normalize first. It’s a cheap win for stable learning.”</div>
+            </div>
+          </details>
+        </section>
+
+        <!-- 4) Neural approximation -->
+        <section id="s4">
+          <h2>4) Neural approximation <small>generalize across similar states and then coins the term called as Bellman Target</small></h2>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Option A: learn Q</div></div>
+              <div class="math">$$Q_\theta(s,a)\approx Q(s,a)$$</div>
+              <div class="explain">
+                <b>Plain English:</b> “Network predicts the Q value for an action, like a learned Q-table that can generalize.”
+                <div class="mini"><b>Mini example:</b> For similar customers, the network learns similar Q values even if it has never seen the exact state before.</div>
+              </div>
+              <div class="callout"><b>Whats the Lineage:</b> This connects to DQN and value-based approaches.</div>
+            </div>
+
+            <div class="card">
+              <div class="head"><span class="badge good"></span><div class="label">Option B: learn policy directly (used in PPO)</div></div>
+              <div class="math">$$\pi_\theta(a\mid s)$$</div>
+              <div class="explain">
+                <b>Plain English:</b> “Network outputs probabilities of each action in this state.”
+                <div class="mini"><b>Mini example:</b> If π(send|s)=0.10 for loyal customers, it means ‘rarely send coupon.’</div>
+              </div>
+              <div class="callout"><b>Why it helps:</b> We optimize the policy directly and no need to estimate Q for every action explicitly.</div>
+            </div>
+          </div>
+
+          <details open>
+            <summary>
+              What does “generalize” mean?
+              <span class="meta">core intuition</span>
+              <span class="caret"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7l5 6 5-6" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </summary>
+            <div style="margin-top:10px;">
+              <p><b>Tabular RL:</b> learns a separate number for each exact state.</p>
+              <p><b>Neural RL:</b> learns shared weights θ that work across many states.</p>
+              <div class="callout"><b>Important line:</b> “If two customers are similar, the network can reuse what it learned.”</div>
+            </div>
+          </details>
+        </section>
+
+        <!-- 5) Actor–Critic -->
+        <section id="s5">
+          <h2>5) Actor–Critic roles <small>who does what</small></h2>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Actor: decides</div></div>
+              <p>The actor is the policy network.</p>
+              <div class="math">$$\pi_\theta(a\mid s)=\text{softmax}(f_\theta(s))_a$$</div>
+              <div class="explain">
+                <b>Plain English:</b> “Actor converts state into action probabilities.”
+                <div class="mini"><b>Mini example:</b> logits=[2,1] ⇒ softmax=[0.73,0.27] means action0 is chosen more often.</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">Critic: evaluates</div></div>
+              <p>The critic predicts how good the current state is, to reduce policy gradient variance.</p>
+              <div class="math">$$V_\phi(s)\approx \mathbb{E}\left[\sum_{t=0}^{\infty}\gamma^t r_t \mid s_0=s\right]$$</div>
+              <div class="explain">
+                <b>Plain English:</b> “Critic predicts the expected total future reward from this state.”
+                <div class="mini"><b>Mini example:</b> V(s)=0.3 means “we expect ~0.3 future reward from here.”</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="callout">
+            <b>Important line:</b> “The actor learns ‘what to do’. The critic learns ‘how good the situation is’ so the actor doesn’t overreact to noise.”
+          </div>
+        </section>
+
+        <!-- 6) Returns & gamma -->
+        <section id="s6">
+          <h2>6) Returns + discount factor <small>why long-term matters</small></h2>
+
+          <div class="math">$$G_t=\sum_{k=0}^{\infty}\gamma^k r_{t+k}$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “Return is the total reward from now onwards; rewards further in the future count less.”
+            <div class="mini"><b>Mini example:</b> γ=0.99: a reward of 1 one step later is worth 0.99 today, two steps later is worth 0.9801.</div>
+          </div>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">γ in retail couponing</div></div>
+              <p>High γ means “care about long-term customer behavior.”</p>
+              <div class="callout"><b>Important line:</b> “High γ discourages coupon addiction because future margin matters.”</div>
+            </div>
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">γ in search + contracts</div></div>
+              <p>High γ means “care about downstream reliability and future support cost.”</p>
+              <div class="callout"><b>Important line:</b> “High γ pushes toward strict contracts if failures are costly later.”</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7) Advantage -->
+        <section id="s7">
+          <h2>7) Advantage <small>the key stabilizer</small></h2>
+
+          <p>The policy should increase probability of actions that did better than expected.</p>
+          <div class="math">$$A_t\approx R_t - V_\phi(s_t)$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “Advantage is (what actually happened) minus (what critic expected).”
+            <div class="mini"><b>Mini example:</b> R=0.9, V=0.3 ⇒ A=0.6 (good surprise → do it more).</div>
+          </div>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge good"></span><div class="label">Positive advantage</div></div>
+              <p>Action performed better than critic expected.</p>
+              <div class="callout"><b>What it does:</b> pushes actor to increase probability of that action in similar states.</div>
+            </div>
+            <div class="card">
+              <div class="head"><span class="badge bad"></span><div class="label">Negative advantage</div></div>
+              <p>Action performed worse than expected.</p>
+              <div class="callout"><b>What it does:</b> pushes actor to decrease probability of that action in similar states.</div>
+            </div>
+          </div>
+
+          <details>
+            <summary>
+              Why advantage reduces variance
+              <span class="meta">big teaching point</span>
+              <span class="caret"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7l5 6 5-6" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </summary>
+            <div style="margin-top:10px;">
+              <p>Without a baseline, the policy gradient uses raw returns, which can be noisy.</p>
+              <p>The critic baseline subtracts “expected reward” so the actor learns from <b>surprises</b>, not raw magnitude.</p>
+              <div class="callout"><b>Important line:</b> “We don’t want the actor to chase noise; we want it to chase consistent improvement.”</div>
+            </div>
+          </details>
+        </section>
+
+        <!-- 8) TD error & GAE -->
+        <section id="s8">
+          <h2>8) TD error + GAE(λ) <small>smooth advantage estimates</small></h2>
+
+          <div class="math">$$\delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “TD error is the one-step surprise: reward plus next value minus current value.”
+            <div class="mini"><b>Mini example:</b> r=0.2, γ=0.99, V(next)=0.25, V(now)=0.30 ⇒ δ=0.1475.</div>
+          </div>
+
+          <div class="math">$$A_t = \sum_{l=0}^{\infty}(\gamma\lambda)^l\delta_{t+l}$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “GAE adds up surprises over multiple steps, but fades them with (γλ).”
+            <div class="mini"><b>Mini example:</b> If γλ≈0.94, the next-step δ counts 0.94×, then 0.94²×, etc.</div>
+          </div>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">What λ does</div></div>
+              <ul>
+                <li>λ close to 1: uses longer horizon, lower bias, more variance</li>
+                <li>λ close to 0: short horizon, higher bias, lower variance</li>
+              </ul>
+              <div class="callout"><b>Important line:</b> “λ is a knob for the bias–variance tradeoff in advantages.”</div>
+            </div>
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">When GAE helps most</div></div>
+              <p>When rewards are sparse/noisy, one-step advantage estimates are unstable. GAE smooths them.</p>
+              <div class="callout"><b>Debug hint:</b> If training is unstable, slightly lower λ or increase batch size.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 9) PPO ratio & clipping -->
+        <section id="s9">
+          <h2>9) Proximal Policy Optimization (PPO) ratio + clipping <small>reliability engineering for updates</small></h2>
+
+          <p><b>Why Proximal Policy Optimization (PPO) exists:</b> plain policy gradient can update too aggressively and “break” good policies.</p>
+
+          <div class="math">$$r_t(\theta)=\frac{\pi_\theta(a_t\mid s_t)}{\pi_{\theta_{old}}(a_t\mid s_t)}$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “Ratio measures how much we changed the probability of the action we actually took.”
+            <div class="mini"><b>Mini example:</b> old prob=0.20, new prob=0.34 ⇒ r=1.70 (policy changed a lot).</div>
+          </div>
+
+          <div class="math">$$L^{CLIP}(\theta)=\mathbb{E}\left[\min\left(r_tA_t,\ \text{clip}(r_t,1-\epsilon,1+\epsilon)A_t\right)\right]$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “Improve using advantage, but cap probability change to within ±ε so we don’t overstep.”
+            <div class="mini"><b>Mini example:</b> ε=0.2 ⇒ r is limited to [0.8,1.2]. If r=1.70, we use 1.2 instead.</div>
+          </div>
+
+          <div class="callout">
+            <b>Important line:</b> “Clipping prevents catastrophic updates the same way guardrails prevent unsafe changes in production.”
+          </div>
+        </section>
+
+        <!-- 10) PPO full loss -->
+        <section id="s10">
+          <h2>10) Proximal Policy Optimization (PPO) full loss <small>what each term does</small></h2>
+
+          <div class="math">$$\mathcal{L} = -L^{CLIP}(\theta) + c_1\cdot (V_\phi(s_t)-R_t)^2 - c_2\cdot \mathcal{H}(\pi_\theta)$$</div>
+          <div class="explain">
+            <b>Plain English:</b> “We maximize the clipped policy objective, train the critic, and keep exploration with entropy.”
+            <div class="mini"><b>Mini example:</b> If entropy term is 0, policy may become deterministic too early and get stuck.</div>
+          </div>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge good"></span><div class="label">Policy term</div></div>
+              <p><b>Does:</b> increases probability of actions with positive advantage, decreases it for negative advantage.</p>
+              <p><b>Clipping:</b> prevents “too much change” in one update.</p>
+            </div>
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">Value term</div></div>
+              <p><b>Does:</b> trains critic baseline so advantage estimates are stable.</p>
+              <p><b>If bad:</b> advantages get noisy → oscillating returns.</p>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Entropy term</div></div>
+              <div class="math">$$\mathcal{H}(\pi)=-\sum_a \pi(a\mid s)\log \pi(a\mid s)$$</div>
+              <div class="explain">
+                <b>Plain English:</b> “Entropy measures exploration; higher entropy means the policy stays a bit random.”
+                <div class="mini"><b>Mini example:</b> π=[0.5,0.5] has higher entropy than π=[0.95,0.05].</div>
+              </div>
+              <div class="callout"><b>Important line:</b> “Entropy is the ‘don’t become overconfident too early’ term.”</div>
+            </div>
+
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">Coefficients c1, c2</div></div>
+              <ul>
+                <li>c1 too small → critic weak → noisy A</li>
+                <li>c1 too large → critic dominates → slow policy learning</li>
+                <li>c2 too small → early collapse to deterministic policy</li>
+                <li>c2 too large → too random → slow convergence</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- 11) PPO loop -->
+        <section id="s11">
+          <h2>11) The Proximal Policy Optimization (PPO) training loop <small>what an Iter really means</small></h2>
+
+          <div class="steps">
+            <div class="step">
+              <div class="num">1</div>
+              <div>
+                <div class="t">Freeze a snapshot policy</div>
+                <div class="d">Copy current policy parameters: $\theta_{old} \leftarrow \theta$. This is the baseline for the ratio $r$.</div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="num">2</div>
+              <div>
+                <div class="t">Collect rollout data (“blocks”)</div>
+                <div class="d">Run policy in environment for N steps, store $(s_t,a_t,r_t, s_{t+1})$.</div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="num">3</div>
+              <div>
+                <div class="t">Compute returns and advantages</div>
+                <div class="d">Use critic + GAE(λ) to compute $A_t$ for each step.</div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="num">4</div>
+              <div>
+                <div class="t">Update policy with clipping</div>
+                <div class="d">Run K gradient steps on the clipped objective using stored rollouts (not fresh data).</div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="num">5</div>
+              <div>
+                <div class="t">Update critic (value baseline)</div>
+                <div class="d">Train $V_\phi$ to predict observed returns; improves stability of next iteration.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="callout">
+            <b>Simple classroom definition:</b><br>
+            <b>Iteration (Iter)</b> = one full cycle of rollout collection + multiple Proximal Policy Optimization (PPO) gradient updates.
+          </div>
+        </section>
+
+        <!-- 12) Reading logs -->
+        <section id="s12">
+          <h2>12) Reading reward logs <small>what your output means</small></h2>
+
+          <div class="code">Iter  10 | recent mean return (last 10 blocks) =   881.30
+Iter  20 | recent mean return (last 10 blocks) =   993.61
+Iter  30 | recent mean return (last 10 blocks) =   813.45
+Iter  40 | recent mean return (last 10 blocks) =   635.08
+Iter  50 | recent mean return (last 10 blocks) =   886.53</div>
+
+          <div class="explain">
+            <b>Plain English:</b> “Every 10 iterations we show a moving average over the last 10 rollout blocks to reduce noise.”
+            <div class="mini"><b>Mini example:</b> If one rollout block is unlucky, the mean still shows the overall direction.</div>
+          </div>
+
+          <div class="kpiRow">
+            <div class="kpi">
+              <div class="k">If return improves</div>
+              <div class="v">Policy is learning</div>
+              <div class="h">More good actions, better long-term choices.</div>
+            </div>
+            <div class="kpi">
+              <div class="k">If return oscillates</div>
+              <div class="v">Updates are noisy</div>
+              <div class="h">Often due to large LR, large ε, or small batch.</div>
+            </div>
+            <div class="kpi">
+              <div class="k">If return collapses</div>
+              <div class="v">Too aggressive</div>
+              <div class="h">Reduce LR, reduce ε, increase rollout steps.</div>
+            </div>
+          </div>
+
+          <details>
+            <summary>
+              Why returns are noisy (normal in RL)
+              <span class="meta">stochastic environments</span>
+              <span class="caret"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7l5 6 5-6" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </summary>
+            <div style="margin-top:10px;">
+              <p>In retail, customer response is probabilistic (Bernoulli purchase). In search, user satisfaction varies and data quality varies.</p>
+              <div class="callout"><b>Important line:</b> “Noise is expected. The job of Proximal Policy Optimization (PPO) is to learn safely under noise.”</div>
+            </div>
+          </details>
+        </section>
+
+        <!-- 13) Tuning -->
+        <section id="s13">
+          <h2>13) What to tune when it breaks <small>debug checklist</small></h2>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge bad"></span><div class="label">Symptom: jump then crash</div></div>
+              <ul>
+                <li>Lower policy learning rate</li>
+                <li>Lower clip ε</li>
+                <li>Increase rollout steps / batch size</li>
+                <li>Check entropy collapse (too deterministic)</li>
+              </ul>
+            </div>
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">Symptom: learning too slow</div></div>
+              <ul>
+                <li>Increase rollout steps</li>
+                <li>Slightly increase optimization epochs</li>
+                <li>Increase entropy coefficient early</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge warn"></span><div class="label">Symptom: oscillations</div></div>
+              <ul>
+                <li>Critic may be unstable → check value loss</li>
+                <li>Batch too small → advantages too noisy</li>
+                <li>Clip fraction too high → steps too big</li>
+              </ul>
+            </div>
+            <div class="card">
+              <div class="head"><span class="badge good"></span><div class="label">What to track (metrics)</div></div>
+              <ul>
+                <li><b>Entropy</b> (exploration)</li>
+                <li><b>Value loss</b> (critic fit)</li>
+                <li><b>Clip fraction / ratio</b> (update size)</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- 14) Real examples -->
+        <section id="s14">
+          <h2>14) Two real examples <small>connect math to product</small></h2>
+
+          <div class="grid">
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Retail coupon — mapping</div></div>
+              <div class="code">State s:   customer features (recency, freq, sensitivity, addiction)
+Action a:  send coupon / no coupon
+Reward r:  margin - coupon_cost (if purchased)
+γ, λ:      care about long-term customer value, smooth advantage
+Goal:      maximize long-run profit, avoid creating addicts</div>
+              <div class="callout"><b>Important line:</b> “PPO learns when coupons help today but hurt tomorrow.”</div>
+            </div>
+
+            <div class="card">
+              <div class="head"><span class="badge"></span><div class="label">Semantic search + contracts — mapping</div></div>
+              <div class="code">State s:   query intent + user role
+Action a:  retrieval strategy (hybrid/vector, strict/lenient, top-k)
+Reward r:  satisfaction + downstream validation success
+γ, λ:      value future reliability, smooth learning signal
+Goal:      stable quality and low risk, not just 'more results'</div>
+              <div class="callout"><b>Important line:</b> “Proximal Policy Optimization (PPO) prevents wild retrieval changes that break production.”</div>
+            </div>
+          </div>
+
+          <details>
+            <summary>
+              Mini narrative you can say aloud (2 minutes)
+              <span class="meta">ready script</span>
+              <span class="caret"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7l5 6 5-6" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </summary>
+            <div style="margin-top:10px;">
+              <p>
+                “Think of the policy as a small brain that chooses an action based on the situation.
+                In retail, the brain chooses to send a coupon or not. In search, it chooses strictness and ranking strategy.
+                We can’t store a giant table for every possible situation, so we use neural networks.
+                But neural updates can be unstable, especially with noisy rewards.
+                Proximal Policy Optimization (PPO) fixes that by limiting how much the policy can change in one step,
+                and the critic helps by telling us what we expected so we only learn from surprises.”
+              </p>
+            </div>
+          </details>
+        </section>
+
+        <!-- 15) Recap -->
+        <section id="s15">
+          <h2>15) Recap + talk track <small>what students must remember</small></h2>
+
+          <ul>
+            <li><b>Scaling problem:</b> Q-tables explode in large/continuous state spaces.</li>
+            <li><b>Neural RL:</b> replace the table with $Q_\theta$ or directly learn $\pi_\theta$.</li>
+            <li><b>Actor–critic:</b> actor chooses actions, critic provides a stable baseline.</li>
+            <li><b>Advantage:</b> learn from “better/worse than expected” outcomes.</li>
+            <li><b>GAE(λ):</b> smooth advantages using a bias–variance knob λ.</li>
+            <li><b>Proximal Policy Optimization (PPO):</b> clipping limits update size and prevents catastrophic policy changes.</li>
+          </ul>
+
+          <div class="callout">
+            <b>One‑liner for class:</b> “Proximal Policy Optimization (PPO) is policy gradient with guardrails — safe updates under noisy feedback.”
+          </div>
+
+          <p style="margin-top:10px;"><a href="#start">Back to top ↑</a></p>
+        </section>
+
+        <div class="footer">
+          If formulas don’t render: allow internet for MathJax CDN once, then Print/Save as PDF.
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script>
+    function jump(sel){
+      const el = document.querySelector(sel);
+      if(!el) return;
+      el.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+    const anchors = ["#s1","#s2","#s3","#s4","#s5","#s6","#s7","#s8","#s9","#s10","#s11","#s12","#s13","#s14","#s15"];
+    function currentIndex(){
+      const y = window.scrollY;
+      let best = 0;
+      for(let i=0;i<anchors.length;i++){
+        const el = document.querySelector(anchors[i]);
+        if(!el) continue;
+        if(el.getBoundingClientRect().top + window.scrollY - 120 <= y) best = i;
+      }
+      return best;
+    }
+    document.addEventListener('keydown', (e)=>{
+      if(e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+      if(e.key === 'j' || e.key === 'J') jump(anchors[Math.min(currentIndex()+1, anchors.length-1)]);
+      if(e.key === 'k' || e.key === 'K') jump(anchors[Math.max(currentIndex()-1, 0)]);
+    });
+  </script>
+</body>
+</html>

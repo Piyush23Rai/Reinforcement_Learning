@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Agent RL Fundamentals: CTDE & Algorithms</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Fira Code', 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #e0e0e0;
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 20px;
+            border-bottom: 2px solid #00d9ff;
+            background: rgba(0, 217, 255, 0.05);
+            border-radius: 8px;
+            animation: slideDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            color: #00d9ff;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #b0b0ff;
+            margin-bottom: 8px;
+        }
+
+        .session-info {
+            font-size: 0.95em;
+            color: #888;
+            margin-top: 15px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            padding: 20px;
+            background: rgba(0, 217, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 217, 255, 0.2);
+        }
+
+        .nav-btn {
+            padding: 12px 20px;
+            background: rgba(0, 217, 255, 0.1);
+            border: 1px solid #00d9ff;
+            color: #00d9ff;
+            cursor: pointer;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 0.95em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(0, 217, 255, 0.25);
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.4);
+        }
+
+        .nav-btn.active {
+            background: #00d9ff;
+            color: #0a0e27;
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.6);
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            font-size: 2em;
+            color: #00ff88;
+            margin: 30px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #00ff88;
+            letter-spacing: 1px;
+        }
+
+        h3 {
+            font-size: 1.5em;
+            color: #00d9ff;
+            margin: 25px 0 15px 0;
+            margin-left: 20px;
+        }
+
+        h4 {
+            font-size: 1.2em;
+            color: #b0b0ff;
+            margin: 18px 0 10px 0;
+            margin-left: 20px;
+        }
+
+        .content {
+            background: rgba(20, 25, 50, 0.8);
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 217, 255, 0.2);
+            margin-bottom: 25px;
+        }
+
+        .math-box {
+            background: rgba(0, 100, 150, 0.1);
+            border-left: 4px solid #00d9ff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+
+        .math-label {
+            font-size: 0.9em;
+            color: #00d9ff;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .equation {
+            font-family: 'Arial', sans-serif;
+            font-size: 1.1em;
+            color: #00ff88;
+            padding: 15px;
+            background: rgba(0, 255, 136, 0.05);
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .case-study {
+            background: rgba(150, 100, 255, 0.1);
+            border-left: 4px solid #b0b0ff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .case-title {
+            color: #b0b0ff;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .architecture-diagram {
+            background: rgba(0, 50, 100, 0.3);
+            border: 1px solid #00d9ff;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 6px;
+            font-family: monospace;
+            overflow-x: auto;
+        }
+
+        .diagram-label {
+            color: #00ff88;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .expandable {
+            background: rgba(100, 150, 255, 0.05);
+            border: 1px solid rgba(176, 176, 255, 0.3);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .expandable:hover {
+            background: rgba(100, 150, 255, 0.1);
+            border-color: rgba(176, 176, 255, 0.6);
+        }
+
+        .expandable-title {
+            color: #b0b0ff;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .expandable-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            margin-top: 0;
+        }
+
+        .expandable.open .expandable-content {
+            max-height: 2000px;
+            margin-top: 15px;
+        }
+
+        .toggle-arrow {
+            color: #00d9ff;
+            font-size: 1.2em;
+            transition: transform 0.3s ease;
+        }
+
+        .expandable.open .toggle-arrow {
+            transform: rotate(180deg);
+        }
+
+        .discussion-prompt {
+            background: rgba(255, 200, 0, 0.05);
+            border-left: 4px solid #ffc800;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .prompt-label {
+            color: #ffc800;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+            border: 1px solid #00d9ff;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .comparison-table th {
+            background: rgba(0, 217, 255, 0.2);
+            border-bottom: 2px solid #00d9ff;
+            padding: 12px;
+            text-align: left;
+            color: #00d9ff;
+            font-weight: bold;
+        }
+
+        .comparison-table td {
+            border-bottom: 1px solid rgba(0, 217, 255, 0.1);
+            padding: 12px;
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(0, 217, 255, 0.05);
+        }
+
+        .key-insight {
+            background: rgba(0, 255, 136, 0.1);
+            border-left: 4px solid #00ff88;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            color: #00ff88;
+            font-style: italic;
+        }
+
+        .warning-box {
+            background: rgba(255, 100, 100, 0.1);
+            border-left: 4px solid #ff6464;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .warning-label {
+            color: #ff6464;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .code-snippet {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #00d9ff;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.9em;
+            color: #00ff88;
+        }
+
+        .timing-guide {
+            background: rgba(100, 100, 255, 0.1);
+            border-left: 4px solid #6464ff;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            color: #b0b0ff;
+        }
+
+        .timing-label {
+            font-weight: bold;
+            color: #6464ff;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 900px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            border-top: 2px solid #00d9ff;
+            margin-top: 40px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        ul {
+            margin-left: 40px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        strong {
+            color: #00ff88;
+        }
+
+        em {
+            color: #b0b0ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚡ Multi-Agent RL Fundamentals</h1>
+            <div class="subtitle">Centralized Training with Decentralized Execution</div>
+            <div class="subtitle">MADDPG • MAPPO • QMIX</div>
+            <div class="session-info">
+                📅 120 minutes | 🎯 Advanced Multi-Agent Learning | 💼 Retail Applications
+            </div>
+        </header>
+
+        <div class="nav-tabs">
+            <button class="nav-btn active" onclick="showSection('bridge')">SA → MA</button>
+            <button class="nav-btn" onclick="showSection('ctde')">CTDE</button>
+            <button class="nav-btn" onclick="showSection('maddpg')">MADDPG</button>
+            <button class="nav-btn" onclick="showSection('mappo')">MAPPO</button>
+            <button class="nav-btn" onclick="showSection('qmix')">QMIX</button>
+            <button class="nav-btn" onclick="showSection('comparison')">Comparison</button>
+            <button class="nav-btn" onclick="showSection('discussion')">Research</button>
+        </div>
+
+        <!-- SECTION 1 -->
+        <div id="bridge" class="section active">
+            <div class="content">
+                <h2>🔗 From Single-Agent to Multi-Agent RL</h2>
+                
+                <div class="timing-guide">
+                    <span class="timing-label">⏱️ 12 min</span> | Foundation & core concepts
+                </div>
+
+                <h3>The Single-Agent Baseline</h3>
+                <p>In single-agent reinforcement learning, one decision-maker interacts with an environment. The optimal policy can be learned because the environment is stationary—only the agent acts.</p>
+
+                <div class="math-box">
+                    <div class="math-label">Markov Decision Process (MDP)</div>
+                    <div class="equation">Q*(s, a) = 𝔼[r + γ max_a' Q*(s', a') | s, a]</div>
+                </div>
+
+                <h3>Why Single-Agent Fails in Multi-Agent Settings</h3>
+
+                <p>Consider a retail supply chain:</p>
+                <ul>
+                    <li><strong>Warehouse:</strong> Manages inventory, shipping schedules</li>
+                    <li><strong>5 Store agents:</strong> Place orders, adjust displays</li>
+                    <li><strong>Pricing agent:</strong> Adjusts prices across locations</li>
+                </ul>
+
+                <div class="warning-box">
+                    <div class="warning-label">The Multi-Agent Problem</div>
+                    <ul>
+                        <li><strong>Non-stationary:</strong> Other agents change their policies constantly</li>
+                        <li><strong>Exponential action space:</strong> |A₁| × |A₂| × ... × |Aₙ| (unscalable)</li>
+                        <li><strong>Credit assignment:</strong> When 5 stores act, who caused the shortage?</li>
+                        <li><strong>Conflicting incentives:</strong> One store's profit may hurt others</li>
+                    </ul>
+                </div>
+
+                <h3>The Multi-Agent Paradigm</h3>
+
+                <p>Each agent has its own observation oᵢ, action aᵢ, reward rᵢ, and policy πᵢ. They act simultaneously and interdependently.</p>
+
+                <div class="key-insight">
+                    💡 Core Challenge: Each agent learns in a **non-stationary** environment because others are also learning. This is a **Stochastic Game**.
+                </div>
+
+                <h3>Stochastic Games</h3>
+
+                <div class="math-box">
+                    <div class="math-label">N-Player Stochastic Game</div>
+                    <div class="equation">
+                        • N agents, state space S<br>
+                        • Joint action space A = A₁ × A₂ × ... × Aₙ<br>
+                        • Transition dynamics: P(s'|s, a₁, ..., aₙ)<br>
+                        • Reward for agent i: Rᵢ(s, a₁, ..., aₙ) (depends on ALL)<br>
+                        • Discount factor: γ
+                    </div>
+                </div>
+
+                <p>Each agent's cumulative return depends on what others do: <strong>Jᵢ = f(πᵢ, π₋ᵢ)</strong></p>
+
+                <h3>Nash Equilibrium: The Solution Concept</h3>
+
+                <div class="math-box">
+                    <div class="math-label">Nash Equilibrium Definition</div>
+                    <div class="equation">Jᵢ(πᵢ*, π_{-i}*) ≥ Jᵢ(πᵢ, π_{-i}*) for all agents i and all alternative πᵢ</div>
+                </div>
+
+                <p>Goal: Learn policies that converge to a Nash Equilibrium.</p>
+
+                <div class="case-study">
+                    <div class="case-title">Example: 3-Store Pricing Game</div>
+                    <p><strong>Setup:</strong> Three stores, each sets price pᵢ ∈ [1, 10]. Demand Dᵢ = 100 - 2pᵢ + 0.5(pⱼ + pₖ). Profit rᵢ = pᵢ · Dᵢ</p>
+                    <p><strong>Multiple Nash Equilibria:</strong> Cooperative (high prices, high profit) or Competitive (low prices, low profit). Which emerges depends on learning dynamics, not just the game.</p>
+                </div>
+
+                <div class="discussion-prompt">
+                    <div class="prompt-label">🎯 Discussion (2 min):</div>
+                    <p>Could one store set high price while others set low? Would this be a Nash Equilibrium?</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2 -->
+        <div id="ctde" class="section">
+            <div class="content">
+                <h2>🎯 Centralized Training with Decentralized Execution (CTDE)</h2>
+                
+                <div class="timing-guide">
+                    <span class="timing-label">⏱️ 15 min</span> | Core paradigm & architecture
+                </div>
+
+                <h3>The CTDE Principle</h3>
+
+                <p>CTDE solves a fundamental tension:</p>
+                <ul>
+                    <li><strong>Training needs:</strong> Access to all agents' data to learn robust policies</li>
+                    <li><strong>Deployment needs:</strong> Agents must act independently with only local information</li>
+                </ul>
+
+                <div class="key-insight">
+                    💡 CTDE: Leverage **full information during training** to learn better policies, but ensure **independent execution** using only local observation.
+                </div>
+
+                <h3>Training vs. Execution</h3>
+
+                <div class="architecture-diagram">
+                    <div class="diagram-label">CTDE Architecture</div>
+                    <pre style="color: #00ff88;">
+TRAINING (Centralized):
+────────────────────
+All observations:  o₁, o₂, o₃, o₄, o₅
+All actions:       a₁, a₂, a₃, a₄, a₅
+All rewards:       r₁, r₂, r₃, r₄, r₅
+Full state:        s
+        ↓
+[Central Critic]
+  Learns from ALL
+  Evaluates JOINT
+        ↓
+[Actor Networks]
+  Updated via critic
+        ↓
+
+EXECUTION (Decentralized):
+────────────────────
+Store 1: o₁ → π₁ → a₁ (no access to others)
+Store 2: o₂ → π₂ → a₂ (independent)
+Store 3: o₃ → π₃ → a₃ (independent)
+...parallel, no communication...
+                    </pre>
+                </div>
+
+                <div class="case-study">
+                    <div class="case-title">Training vs. Execution Example</div>
+                    <p><strong>Training:</strong> Offline logs of all store observations, actions, rewards. Central critic has full visibility.</p>
+                    <p><strong>Execution:</strong> Live deployment. Store only knows its own inventory and local demand. Must decide independently.</p>
+                </div>
+
+                <h3>Centralized Critic</h3>
+
+                <div class="math-box">
+                    <div class="math-label">Joint Value Function</div>
+                    <div class="equation">Qᶜᵉⁿ(s, a₁, ..., aₙ) = 𝔼[Σₜ γᵗ rₜ | s, a₁, ..., aₙ]</div>
+                </div>
+
+                <p>Decompose to assign credit:</p>
+
+                <div class="math-box">
+                    <div class="math-label">Value Decomposition</div>
+                    <div class="equation">Qᶜᵉⁿ(s, a₁, ..., aₙ) = V(s) + Σᵢ Aᵢ(s, aᵢ)</div>
+                </div>
+
+                <h3>Actor Updates</h3>
+
+                <div class="math-box">
+                    <div class="math-label">Policy Gradient for Agent i</div>
+                    <div class="equation">∇_θᵢ Jᵢ ∝ 𝔼[∇_θᵢ log πᵢ(aᵢ|oᵢ) · Qᶜᵉⁿ(s, a₁, ..., aₙ)]</div>
+                </div>
+
+                <p><strong>Key:</strong> Actor πᵢ only depends on oᵢ, but gets gradients from joint evaluation.</p>
+
+                <div class="key-insight">
+                    💡 Why CTDE Works: Critic sees everything during training and identifies which agent's action helps or hurts. At execution, actors work blind but learned implicit patterns.
+                </div>
+
+                <h3>The Information Gap Challenge</h3>
+
+                <div class="warning-box">
+                    <div class="warning-label">⚠️ Training-Execution Asymmetry</div>
+                    <p><strong>Training:</strong> Agent i sees oᵢ but receives credit/blame from full state s.</p>
+                    <p><strong>Execution:</strong> Agent i only sees oᵢ and must predict others implicitly.</p>
+                    <p><strong>Risk:</strong> If critic depends on info agent i can't access at execution, training fails.</p>
+                </div>
+
+                <div class="discussion-prompt">
+                    <div class="prompt-label">🎯 Discussion (2 min):</div>
+                    <p>If a new store opens with no historical data, can you deploy trained policies immediately?</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3 -->
+        <div id="maddpg" class="section">
+            <div class="content">
+                <h2>🔴 MADDPG: Multi-Agent Deep Deterministic Policy Gradient</h2>
+                
+                <div class="timing-guide">
+                    <span class="timing-label">⏱️ 25 min</span> | Deterministic policies, continuous control
+                </div>
+
+                <h3>From DDPG to MADDPG</h3>
+
+                <p><strong>DDPG (Single-Agent):</strong> Uses deterministic policy a = μ(o) with continuous actions.</p>
+
+                <div class="math-box">
+                    <div class="math-label">DDPG Policy Gradient</div>
+                    <div class="equation">∇_θ J = 𝔼[∇_θ μ(o) · ∇_a Q(s,a)|_a=μ(o)]</div>
+                </div>
+
+                <p><strong>MADDPG Extension:</strong> Use centralized critics with multi-agent:</p>
+
+                <div class="math-box">
+                    <div class="math-label">MADDPG</div>
+                    <div class="equation">∇_θᵢ Jᵢ = 𝔼[∇_θᵢ μᵢ(oᵢ) · ∇_aᵢ Qᵢᶜᵉⁿ(s, a₁, ..., aₙ)|_aⱼ=μⱼ(oⱼ)]</div>
+                </div>
+
+                <h3>MADDPG Algorithm</h3>
+
+                <div class="architecture-diagram">
+                    <div class="diagram-label">MADDPG Training Loop</div>
+                    <pre style="color: #00ff88; font-size: 0.85em;">
+1. Collection: All agents act in parallel
+   For each i: aᵢ = μᵢ(oᵢ) + noise
+   Execute → get (r₁, ..., rₙ), s'
+   Store in replay buffer
+
+2. Critic Update: Uses full joint information
+   yᵢ = rᵢ + γ Qᵢ⁻(s', μ₁⁻(o₁'), ..., μₙ⁻(oₙ'))
+   Loss: Lᵢ = (Qᵢ(s, a) - yᵢ)²
+   Update φᵢ
+
+3. Actor Update: Each agent uses own gradient
+   ∇_θᵢ Jᵢ = 𝔼[∇_θᵢ μᵢ(oᵢ) · ∇_aᵢ Qᵢ(s, a₁, ..., aₙ)]
+   Update θμᵢ
+
+4. Target Networks: Soft updates
+   θμᵢ⁻ ← τ θμᵢ + (1-τ) θμᵢ⁻  (τ ≈ 0.001)
+                    </pre>
+                </div>
+
+                <h3>Deterministic Policies</h3>
+
+                <p>MADDPG uses deterministic μᵢ(oᵢ), not stochastic πᵢ(aᵢ|oᵢ).</p>
+
+                <div class="key-insight">
+                    💡 Deterministic vs. Stochastic: Deterministic policies allow direct gradient computation through Q-function. More sample-efficient. But need external noise for exploration.
+                </div>
+
+                <div class="math-box">
+                    <div class="math-label">Exploration in MADDPG</div>
+                    <div class="equation">aᵢ_executed = μᵢ(oᵢ) + ε,  where ε ~ 𝒩(0, σ²)</div>
+                </div>
+
+                <h3>Retail Case: Dynamic Pricing</h3>
+
+                <div class="case-study">
+                    <div class="case-title">3-Store Pricing Competition</div>
+                    <p><strong>Setup:</strong> Three stores, each controls price pᵢ ∈ [1, 10]. Demand: Dᵢ = 100 - 2pᵢ + 0.5(pⱼ + pₖ). Profit: rᵢ = pᵢ · Dᵢ</p>
+                    <p><strong>MADDPG:</strong> Observation oᵢ = recent demand history + inventory. Action aᵢ = price via μᵢ(oᵢ). Critic sees all prices, learns expected profit for store i.</p>
+                    <p><strong>Execution:</strong> Store i only sees its own demand history (oᵢ). Sets price via μᵢ independently.</p>
+                    <p><strong>Challenge:</strong> Agents may learn to undercut each other (race-to-bottom Nash Equilibrium).</p>
+                </div>
+
+                <h3>Challenges</h3>
+
+                <div class="warning-box">
+                    <div class="warning-label">⚠️ Non-Stationarity</div>
+                    <p>Other agents' policies change. Critic's target distribution shifts. Solution: large replay buffers, soft target updates.</p>
+                </div>
+
+                <div class="warning-box">
+                    <div class="warning-label">⚠️ Credit Assignment</div>
+                    <p>Sparse rewards make it hard to know which agent helped. Solution: design intermediate rewards.</p>
+                </div>
+
+                <div class="warning-box">
+                    <div class="warning-label">⚠️ Competitive Collapse</div>
+                    <p>Agents can enter cycles or converge to bad equilibrium. Solution: constraints, reward shaping, or use MAPPO.</p>
+                </div>
+
+                <div class="discussion-prompt">
+                    <div class="prompt-label">🎯 Discussion (3 min):</div>
+                    <p>MADDPG learns deterministic policies. Can it escape from a bad equilibrium (low prices) to a better one (high prices) via exploration?</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 4 -->
+        <div id="mappo" class="section">
+            <div class="content">
+                <h2>🟠 MAPPO: Multi-Agent Proximal Policy Optimization</h2>
+                
+                <div class="timing-guide">
+                    <span class="timing-label">⏱️ 25 min</span> | Stochastic policies, stability, on-policy
+                </div>
+
+                <h3>PPO Review</h3>
+
+                <p><strong>PPO (Single-Agent):</strong> Prevents overly large policy updates via clipping:</p>
+
+                <div class="math-box">
+                    <div class="math-label">PPO Clipped Objective</div>
+                    <div class="equation">L^CLIP = 𝔼[min(rₜ Âₜ, clip(rₜ, 1-ε, 1+ε) Âₜ)]</div>
+                </div>
+
+                <h3>MAPPO Extension</h3>
+
+                <div class="math-box">
+                    <div class="math-label">MAPPO for Agent i</div>
+                    <div class="equation">L^CLIP_i = 𝔼[min(rᵢₜ Âᵢₜ, clip(rᵢₜ, 1-ε, 1+ε) Âᵢₜ)]</div>
+                </div>
+
+                <p><strong>Key Difference from MADDPG:</strong> Stochastic policy πᵢ(aᵢ|oᵢ) and on-policy learning (fresh trajectories, no replay buffer).</p>
+
+                <h3>MAPPO Algorithm</h3>
+
+                <div class="architecture-diagram">
+                    <div class="diagram-label">MAPPO Training Loop</div>
+                    <pre style="color: #00ff88; font-size: 0.85em;">
+1. Collection (On-policy): Fresh trajectories
+   For t=0 to T:
+     For each i: aᵢₜ ~ πᵢ(·|oᵢₜ)
+     Execute joint action → rewards, s'
+     Store (o, a, r, s, log_prob)
+
+2. Compute Advantages: After episode
+   V^cen(sₜ) = value function
+   Âᵢₜ = return - V^cen(sₜ)
+
+3. Actor Update (K epochs PPO):
+   rᵢₜ = π(aᵢₜ|oᵢₜ) / π_old(aᵢₜ|oᵢₜ)
+   L_i = -min(rᵢₜ Âᵢₜ, clip(rᵢₜ, 1-ε, 1+ε) Âᵢₜ)
+   Update θᵢ
+
+4. Critic Update (K epochs):
+   L_V = (V^cen(s) - G)²
+   Update φ
+                    </pre>
+                </div>
+
+                <h3>Why Stochastic Policies?</h3>
+
+                <div class="key-insight">
+                    💡 Stochasticity: Natural exploration via policy entropy. Avoids deterministic mode collapse. More stable when others are changing.
+                </div>
+
+                <h3>Retail Case: Multi-Warehouse Inventory</h3>
+
+                <div class="case-study">
+                    <div class="case-title">3-Warehouse Restocking Network</div>
+                    <p><strong>Setup:</strong> 3 warehouses, limited stock, can redistribute (expensive). Daily stochastic demand. Action: quantity to restock locally.</p>
+                    <p><strong>MAPPO Fits:</strong> High stochasticity (demand varies), fully cooperative (all want inventory efficiency), on-policy suits quick episodes. PPO clipping prevents oscillations.</p>
+                    <p><strong>Why not MADDPG:</strong> Deterministic policies could oscillate (warehouse wars). MAPPO's stochasticity helps explore stable patterns.</p>
+                </div>
+
+                <h3>MAPPO vs. MADDPG</h3>
+
+                <table class="comparison-table">
+                    <tr>
+                        <th>Aspect</th>
+                        <th>MADDPG</th>
+                        <th>MAPPO</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Policy</strong></td>
+                        <td>Deterministic μᵢ(oᵢ)</td>
+                        <td>Stochastic πᵢ(aᵢ|oᵢ)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Learning</strong></td>
+                        <td>Off-policy</td>
+                        <td>On-policy</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Efficiency</strong></td>
+                        <td>Higher (reuses data)</td>
+                        <td>Lower (fresh data only)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Stability</strong></td>
+                        <td>Can oscillate</td>
+                        <td>Stable (PPO clipping)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Exploration</strong></td>
+                        <td>Via noise ε</td>
+                        <td>Via entropy</td>
+                    </tr>
+                </table>
+
+                <div class="discussion-prompt">
+                    <div class="prompt-label">🎯 Discussion (3 min):</div>
+                    <p>In the warehouse example, suppose warehouse A learns "never share." How could MAPPO's stochasticity help A discover sharing is beneficial?</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 5 -->
+        <div id="qmix" class="section">
+            <div class="content">
+                <h2>🟡 QMIX: Q-Learning with Value Function Factorization</h2>
+                
+                <div class="timing-guide">
+                    <span class="timing-label">⏱️ 20 min</span> | Factorization, monotonicity, decentralized exec
+                </div>
+
+                <h3>The Factorization Problem</h3>
+
+                <p>Can we decompose joint Q-value as combination of individual Q-values?</p>
+
+                <div class="math-box">
+                    <div class="math-label">Goal: Value Factorization</div>
+                    <div class="equation">Qₜₒₜ(s, a₁, ..., aₙ) = f(Q₁(oᵢ, a₁), Q₂(o₂, a₂), ..., Qₙ(oₙ, aₙ))</div>
+                </div>
+
+                <p>If yes, each agent independently maximizing its Qᵢ achieves global optimum!</p>
+
+                <div class="key-insight">
+                    💡 Why? If Q_total is just combination of individual Q's, greedy execution works automatically. But only in fully cooperative settings.
+                </div>
+
+                <h3>QMIX: Mixing Network</h3>
+
+                <div class="architecture-diagram">
+                    <div class="diagram-label">QMIX Architecture</div>
+                    <pre style="color: #00ff88;">
+Q-Networks:                 Mixing Network:
+──────────                  ──────────────
+o₁ → Q_net₁ → Qᵢ(a₁)              ┌─────────────────┐
+o₂ → Q_net₂ → Qᵢ(a₂)              │ Mixing Network  │
+o₃ → Q_net₃ → Qᵢ(a₃)              │ (Learned)       │
+                  ╲                │                 │
+                   ╲──→           │ Inputs: Q values│
+                                  │ Global state: s │
+                                  │ Output: Q_total │
+                                  └─────────────────┘
+                                       ↓
+                                   y = r + γ Q'_total
+                    </pre>
+                </div>
+
+                <div class="math-box">
+                    <div class="math-label">QMIX Factorization</div>
+                    <div class="equation">Qₜₒₜ = mixing_net(Q₁, Q₂, ..., Qₙ | s)</div>
+                </div>
+
+                <h3>The Monotonicity Constraint</h3>
+
+                <div class="math-box">
+                    <div class="math-label">Critical Constraint</div>
+                    <div class="equation">∂Qₜₒₜ / ∂Qᵢ ≥ 0  for all agents i</div>
+                </div>
+
+                <p>Total Q must be non-decreasing in each individual Q.</p>
+
+                <div class="key-insight">
+                    💡 Monotonicity Guarantee: Each agent independently maximizing its Qᵢ **automatically** maximizes Q_total. Enables true decentralized greedy execution!
+                </div>
+
+                <div class="math-box">
+                    <div class="math-label">Decentralized Optimality</div>
+                    <div class="equation">a*ᵢ = argmax_aᵢ Qᵢ(oᵢ, aᵢ) independently<br>
+⇒ (a*₁, a*₂, ..., a*ₙ) = argmax Qₜₒₜ</div>
+                </div>
+
+                <h3>Implementation</h3>
+
+                <p>Enforce monotonicity via architecture:</p>
+
+                <div class="code-snippet">
+# QMIX Mixing Network
+w1 = torch.abs(self.w1.weight)  # ← abs() ensures w ≥ 0
+hidden = torch.relu(w1 @ q_values + b1)
+w2 = torch.abs(self.w2.weight)  # ← positive again
+q_total = w2 @ hidden + b2
+                </div>
+
+                <p><strong>Key:</strong> torch.abs() on weights ensures monotonicity through each layer.</p>
+
+                <h3>Retail Case: Order Fulfillment</h3>
+
+                <div class="case-study">
+                    <div class="case-title">Click-and-Collect: 10-Store Network</div>
+                    <p><strong>Setup:</strong> 10 stores, online order arrives. **One store must fulfill** (constraint).</p>
+                    <p><strong>Cost:</strong> cᵢ = distance + inventory penalty</p>
+                    <p><strong>Q-Values:</strong> Qᵢ(aᵢ) ≈ -cost if store i fulfills, 0 otherwise</p>
+                    <p><strong>Mixing Network:</strong> Combines all Qᵢ, picks store with best (lowest cost)</p>
+                    <p><strong>Execution:</strong> Each store independently computes its Q. System picks argmax. Monotonicity guarantees this is globally optimal!</p>
+                </div>
+
+                <h3>When QMIX Works</h3>
+
+                <div class="expandable" onclick="toggleExpandable(this)">
+                    <div class="expandable-title">
+                        <span>✓ QMIX is Appropriate When:</span>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                    <div class="expandable-content">
+                        <ul>
+                            <li>Fully cooperative: All agents share same reward</li>
+                            <li>Discrete actions (or can discretize)</li>
+                            <li>Clear local preferences</li>
+                            <li>Scalable to 10-100s agents</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="expandable" onclick="toggleExpandable(this)">
+                    <div class="expandable-title">
+                        <span>✗ QMIX Breaks When:</span>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                    <div class="expandable-content">
+                        <ul>
+                            <li>Mixed/competitive goals (conflicting objectives)</li>
+                            <li>Complex coordination needed</li>
+                            <li>Agents need to exchange private info</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="discussion-prompt">
+                    <div class="prompt-label">🎯 Discussion (2 min):</div>
+                    <p>Why does monotonicity ensure greedy execution is optimal? What if mixing network were non-monotonic?</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 6 -->
+        <div id="comparison" class="section">
+            <div class="content">
+                <h2>⚖️ Algorithm Comparison & Selection</h2>
+                
+                <div class="timing-guide">
+                    <span class="timing-label">⏱️ 12 min</span> | When to use which
+                </div>
+
+                <h3>Overview</h3>
+
+                <table class="comparison-table">
+                    <tr>
+                        <th>Algorithm</th>
+                        <th>Policy</th>
+                        <th>Learning</th>
+                        <th>Strength</th>
+                        <th>Best For</th>
+                    </tr>
+                    <tr>
+                        <td><strong>MADDPG</strong></td>
+                        <td>Deterministic</td>
+                        <td>Off-policy</td>
+                        <td>Sample efficient</td>
+                        <td>Continuous, historical data</td>
+                    </tr>
+                    <tr>
+                        <td><strong>MAPPO</strong></td>
+                        <td>Stochastic</td>
+                        <td>On-policy</td>
+                        <td>Stability</td>
+                        <td>Simulation-ready, exploration</td>
+                    </tr>
+                    <tr>
+                        <td><strong>QMIX</strong></td>
+                        <td>Discrete</td>
+                        <td>Off-policy</td>
+                        <td>Factorization</td>
+                        <td>Cooperative, discrete</td>
+                    </tr>
+                </table>
+
+                <h3>Selection Framework</h3>
+
+                <div class="architecture-diagram">
+                    <div class="diagram-label">Decision Tree</div>
+                    <pre style="color: #00ff88;">
+START
+│
+├─ FULLY COOPERATIVE?
+│  ├─ YES → QMIX ✓
+│  └─ NO → Continue
+│
+├─ Action Space?
+│  ├─ CONTINUOUS
+│  │  ├─ Have OFFLINE DATA? YES → MADDPG
+│  │  └─ NO → MAPPO
+│  └─ DISCRETE → MAPPO or QMIX (if coop)
+│
+└─ Scale & Stability
+   ├─ 100+ agents? → QMIX (scales)
+   ├─ Need stability? → MAPPO
+   └─ Need efficiency? → MADDPG
+                    </pre>
+                </div>
+
+                <h3>Retail Scenarios</h3>
+
+                <div class="expandable" onclick="toggleExpandable(this)">
+                    <div class="expandable-title">
+                        <span>Scenario 1: Dynamic Pricing</span>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                    <div class="expandable-content">
+                        <p><strong>Algorithm:</strong> MADDPG</p>
+                        <p><strong>Why:</strong> Continuous prices, mixed competitive setting, historical data available. Risk: price wars. Add constraints.</p>
+                    </div>
+                </div>
+
+                <div class="expandable" onclick="toggleExpandable(this)">
+                    <div class="expandable-title">
+                        <span>Scenario 2: Inventory Restocking</span>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                    <div class="expandable-content">
+                        <p><strong>Algorithm:</strong> MAPPO</p>
+                        <p><strong>Why:</strong> Continuous, cooperative, high stochasticity. Stability important to avoid oscillations.</p>
+                    </div>
+                </div>
+
+                <div class="expandable" onclick="toggleExpandable(this)">
+                    <div class="expandable-title">
+                        <span>Scenario 3: Order Fulfillment</span>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                    <div class="expandable-content">
+                        <p><strong>Algorithm:</strong> QMIX</p>
+                        <p><strong>Why:</strong> Discrete (which store), cooperative, 10 agents benefit from factorization.</p>
+                    </div>
+                </div>
+
+                <div class="expandable" onclick="toggleExpandable(this)">
+                    <div class="expandable-title">
+                        <span>Scenario 4: Staff Scheduling</span>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                    <div class="expandable-content">
+                        <p><strong>Algorithm:</strong> MAPPO</p>
+                        <p><strong>Why:</strong> Discrete, mixed incentives, 20 agents. MAPPO scales better than MADDPG's centralized critic.</p>
+                    </div>
+                </div>
+
+                <h3>Red Flags</h3>
+
+                <div class="warning-box">
+                    <div class="warning-label">⚠️ Extreme Information Asymmetry</div>
+                    <p>Some agents see everything, others almost nothing. Information gap unbridgeable.</p>
+                </div>
+
+                <div class="warning-box">
+                    <div class="warning-label">⚠️ Purely Adversarial</div>
+                    <p>Zero-sum games. CTDE assumes alignment that doesn't exist.</p>
+                </div>
+
+                <div class="warning-box">
+                    <div class="warning-label">⚠️ Massive Scale (1000s Agents)</div>
+                    <p>Centralized critics become bottlenecks. Mean-field or graph methods needed.</p>
+                </div>
+
+                <div class="discussion-prompt">
+                    <div class="prompt-label">🎯 Discussion (2 min):</div>
+                    <p>Could you use all three simultaneously? (Pricing with MADDPG, Inventory with MAPPO, Fulfillment with QMIX). What challenges?</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 7 -->
+        <div id="discussion" class="section">
+            <div class="content">
+                <h2>🔬 Open Research Problems</h2>
+                
+                <div class="timing-guide">
+                    <span class="timing-label">⏱️ 11 min</span> | Unsolved challenges
+                </div>
+
+                <h3>Problem 1: Non-Stationarity & Convergence</h3>
+
+                <p>As agent i learns πᵢ, agents j are also learning. Environment is non-stationary.</p>
+
+                <div class="math-box">
+                    <div class="math-label">Non-Stationarity</div>
+                    <div class="equation">At t: V_i = 𝔼[Σ γ^τ r_i | s, π_i^t, π_{-i}^t]<br>
+At t+1: V_i = 𝔼[Σ γ^τ r_i | s, π_i^{t+1}, π_{-i}^{t+1}]<br>
+Critic trained for t is outdated at t+1!</div>
+                </div>
+
+                <p><strong>State:</strong> Convergence theory exists for special cases only. No general guarantees.</p>
+
+                <div class="key-insight">
+                    💡 Research: Model learning dynamics explicitly. Predict how other policies evolve.
+                </div>
+
+                <h3>Problem 2: Credit Assignment in Sparse Rewards</h3>
+
+                <p>Quarterly profit $100M vs. forecast $120M. Who's responsible? Warehouse? Stores? Pricing?</p>
+
+                <p><strong>Solutions:</strong> Design intermediate rewards, reward shaping, counterfactual reasoning.</p>
+
+                <h3>Problem 3: Scaling to Many Agents</h3>
+
+                <div class="warning-box">
+                    <div class="warning-label">⚠️ Bottleneck</div>
+                    <p>MADDPG/MAPPO critics: input grows with n agents. QMIX mixing: grows with n.</p>
+                </div>
+
+                <p><strong>Solutions:</strong> Mean-field approximation, graph neural networks, hierarchical MARL.</p>
+
+                <h3>Problem 4: Mixed Competitive/Cooperative</h3>
+
+                <p>Real retail: both cooperation (serve demand) and competition (maximize profit).</p>
+
+                <div class="math-box">
+                    <div class="math-label">Mixed Incentive Game</div>
+                    <div class="equation">J_i = w₁ · (total_profit) + w₂ · (my_profit)  where 0 < w₁ < 1 < w₂</div>
+                </div>
+
+                <p><strong>Gap:</strong> QMIX assumes full cooperation. MADDPG/MAPPO give no guarantees.</p>
+
+                <p><strong>Research:</strong> Multi-task learning, mechanism design, incentive learning.</p>
+
+                <h3>Problem 5: Safety & Robustness</h3>
+
+                <p>Multi-agent systems can exhibit emergent unwanted behaviors:</p>
+
+                <ul>
+                    <li><strong>Price wars:</strong> Agents undercut → margins collapse</li>
+                    <li><strong>Bullwhip:</strong> Inventory oscillations amplify</li>
+                    <li><strong>Demand destruction:</strong> Aggressive pricing drives customers away</li>
+                </ul>
+
+                <p><strong>Solutions:</strong> Constrained RL (hard action bounds), interpretability (audit trails), human oversight, constitutional AI.</p>
+
+                <h3>Problem 6: Communication & Coordination</h3>
+
+                <p>Current CTDE assumes no execution-time communication. But sometimes coordination helps.</p>
+
+                <p><strong>Open Questions:</strong> When should agents communicate? What to communicate? How to prevent collusion?</p>
+
+                <h3>Key Takeaways</h3>
+
+                <div class="key-insight">
+                    1️⃣ <strong>CTDE:</strong> Train centralized, execute decentralized. Unlocks better learning + deployment flexibility.
+                </div>
+
+                <div class="key-insight">
+                    2️⃣ <strong>Algorithm Choice:</strong> MADDPG (efficient), MAPPO (stable), QMIX (factorized). Context-dependent.
+                </div>
+
+                <div class="key-insight">
+                    3️⃣ <strong>Non-Stationarity:</strong> Core challenge. Other agents' changing policies make learning hard.
+                </div>
+
+                <div class="key-insight">
+                    4️⃣ <strong>Convergence:</strong> Theoretical guarantees rare. Test extensively before deployment.
+                </div>
+
+                <div class="key-insight">
+                    5️⃣ <strong>Safety:</strong> Emergent behaviors can harm business. Design constraints and oversight.
+                </div>
+
+                <div class="key-insight">
+                    6️⃣ <strong>Research Opportunities:</strong> MARL is young. Many open problems. Publishable contributions await!
+                </div>
+
+                <div class="discussion-prompt">
+                    <div class="prompt-label">🎯 Final Discussion (5 min):</div>
+                    <p>If you were deploying a 50-store system (pricing, inventory, staffing), which of these 6 problems would you tackle first? Why? How would you validate your solution?</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Multi-Agent RL Fundamentals: CTDE & Algorithms | 120-Minute Module</p>
+            <p>Domain-agnostic foundations with retail applications</p>
+        </div>
+    </div>
+
+    <script>
+        function showSection(sectionId) {
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+
+            const buttons = document.querySelectorAll('.nav-btn');
+            buttons.forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function toggleExpandable(element) {
+            element.classList.toggle('open');
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                const prevBtn = document.querySelector('.nav-btn.active').previousElementSibling;
+                if (prevBtn && prevBtn.classList.contains('nav-btn')) prevBtn.click();
+            } else if (e.key === 'ArrowRight') {
+                const nextBtn = document.querySelector('.nav-btn.active').nextElementSibling;
+                if (nextBtn && nextBtn.classList.contains('nav-btn')) nextBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>

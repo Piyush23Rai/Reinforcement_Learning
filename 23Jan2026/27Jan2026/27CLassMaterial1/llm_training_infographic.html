@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Training Pipeline - Interactive Infographic</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            animation: slideDown 0.8s ease-out;
+        }
+
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.3em;
+            opacity: 0.95;
+        }
+
+        .pipeline-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .pipeline-section h2 {
+            color: #667eea;
+            font-size: 2.2em;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .stage-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 50px;
+            font-weight: bold;
+            font-size: 1.5em;
+            margin-right: 15px;
+            vertical-align: middle;
+        }
+
+        .flex-row {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .flex-col {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .code-block code {
+            color: #d4d4d4;
+        }
+
+        .keyword { color: #569cd6; }
+        .string { color: #ce9178; }
+        .comment { color: #6a9955; }
+        .function { color: #dcdcaa; }
+
+        .output-block {
+            background: #f0f0f0;
+            border: 2px solid #667eea;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+
+        .output-line {
+            margin: 5px 0;
+            color: #333;
+        }
+
+        .mathematical-formula {
+            background: #f9f9f9;
+            border-left: 4px solid #764ba2;
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-family: 'Times New Roman', serif;
+            font-size: 1.1em;
+            font-style: italic;
+        }
+
+        .real-world-example {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #764ba2;
+        }
+
+        .real-world-example h4 {
+            color: #764ba2;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .comparison-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .metric-card {
+            background: white;
+            border: 2px solid #667eea;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2em;
+            color: #667eea;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .metric-label {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .insight-box {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: bold;
+        }
+
+        .stage-flow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .stage-box {
+            flex: 1;
+            min-width: 250px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .stage-box h3 {
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .arrow {
+            font-size: 2em;
+            color: #667eea;
+            margin: 0 10px;
+        }
+
+        .key-insight {
+            background: white;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .key-insight strong {
+            color: #667eea;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .pharmaceutical-example {
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .pharmaceutical-example h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .toggle-content {
+            display: none;
+        }
+
+        .toggle-content.active {
+            display: block;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        .toggle-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            margin-top: 40px;
+            opacity: 0.9;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .highlight-yellow {
+            background-color: #fff9c4;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .highlight-blue {
+            background-color: #c3e7ff;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2em;
+            }
+            
+            .stage-flow {
+                flex-direction: column;
+            }
+            
+            .arrow {
+                transform: rotate(90deg);
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <header>
+            <h1>🚀 LLM Training Pipeline: Complete Journey</h1>
+            <p>From Raw Patterns to Aligned Pharmaceutical AI - Code, Output & Real-World Integration</p>
+        </header>
+
+        <!-- PIPELINE OVERVIEW -->
+        <div class="pipeline-section">
+            <h2>The Three-Stage Training Journey</h2>
+            <div class="stage-flow">
+                <div class="stage-box">
+                    <h3>Stage 1</h3>
+                    <p><strong>Pretraining</strong></p>
+                    <p style="font-size: 0.9em; margin-top: 10px;">Learn Statistical Patterns</p>
+                </div>
+                <div class="arrow">→</div>
+                <div class="stage-box">
+                    <h3>Stage 2</h3>
+                    <p><strong>SFT</strong></p>
+                    <p style="font-size: 0.9em; margin-top: 10px;">Learn Expert Behaviors</p>
+                </div>
+                <div class="arrow">→</div>
+                <div class="stage-box">
+                    <h3>Stage 3</h3>
+                    <p><strong>Reward Model</strong></p>
+                    <p style="font-size: 0.9em; margin-top: 10px;">Learn Preferences</p>
+                </div>
+            </div>
+            <p style="margin-top: 30px; text-align: center; font-size: 1.1em;">
+                🎯 <span class="gradient-text">Each stage solves a specific problem that previous stages cannot</span>
+            </p>
+        </div>
+
+        <!-- STAGE 1: PRETRAINING -->
+        <div class="pipeline-section">
+            <h2><span class="stage-number">1</span>Pretraining: Learning Medical Patterns</h2>
+            
+            <div class="real-world-example">
+                <h4>🏥 Real-World Analogy</h4>
+                <p><strong>Medical Student's Reading Phase</strong>: A first-year medical student reads thousands of textbooks and clinical notes. She learns statistical correlations:</p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Fever + Body Aches + Fatigue → Often "Viral Infection"</li>
+                    <li>Low GFR (eGFR 28) + Metformin → "Lactic Acidosis Risk"</li>
+                </ul>
+                <p style="margin-top: 10px;"><em>Problem: She understands WHAT happens, but not WHY or how to PREVENT it</em></p>
+            </div>
+
+            <div class="flex-row">
+                <div class="flex-col">
+                    <h3>The Code: What's Happening?</h3>
+                    <div class="code-block"><code>
+<span class="comment"># 10 pharmaceutical training sequences</span>
+sequences = [
+    <span class="string">("Patient fever body aches fatigue"</span>, <span class="string">"viral"</span>),
+    <span class="string">("eGFR 28 metformin"</span>, <span class="string">"lactic_acidosis"</span>),
+    <span class="string">("Warfarin NSAIDs"</span>, <span class="string">"bleeding"</span>),
+]
+
+<span class="comment"># For each sequence:</span>
+<span class="comment"># 1. Encode context as vector</span>
+probs = softmax(context_vector)
+
+<span class="comment"># 2. Compute: P(next_token | context)</span>
+loss = -log(P(target_token))
+
+<span class="comment"># 3. Gradient descent improves probability</span>
+weights -= learning_rate * gradient
+                    </code></div>
+
+                    <div class="mathematical-formula">
+                        <strong>Loss Function:</strong><br>
+                        L = -Σ log P(w_t | w_&lt;t)<br>
+                        <em>Cross-entropy loss between predicted and target distribution</em>
+                    </div>
+                </div>
+
+                <div class="flex-col">
+                    <h3>The Output: What Do the Numbers Mean?</h3>
+                    <div class="output-block">
+                        <div class="output-line"><strong>Training pretraining model...</strong></div>
+                        <div class="output-line">Epoch 1/5: Loss = <span class="highlight-yellow">4.5943</span></div>
+                        <div class="output-line">Epoch 2/5: Loss = <span class="highlight-yellow">4.6329</span></div>
+                        <div class="output-line">Epoch 3/5: Loss = <span class="highlight-yellow">4.6399</span></div>
+                        <div class="output-line">Epoch 4/5: Loss = <span class="highlight-yellow">4.6247</span></div>
+                        <div class="output-line">Epoch 5/5: Loss = <span class="highlight-yellow">4.6149</span></div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-label">Why is Loss So HIGH?</div>
+                        <div class="metric-value">≈ 4.6</div>
+                        <p>Random guessing from 100 tokens: log(100) ≈ 4.6</p>
+                        <p>With only 10 sequences, improvement is minimal</p>
+                    </div>
+
+                    <div class="warning-box">
+                        <strong>❌ Critical Limitation:</strong><br>
+                        Pretraining learns <strong>statistical patterns</strong> but <strong>NO safety understanding</strong>. If toxic content appears in training data, model reproduces it without understanding harm.
+                    </div>
+                </div>
+            </div>
+
+            <div class="pharmaceutical-example">
+                <h4>💊 Pharmaceutical Example: What Pretraining Learns</h4>
+                <p><strong>Input text patterns from medical literature:</strong></p>
+                <div class="code-block" style="background: #f0f0f0; color: #333; border-left: 4px solid #667eea;">
+<strong>Pattern 1:</strong> "eGFR 28 + Metformin" → learned next word often "lactic acidosis"<br>
+<strong>Pattern 2:</strong> "Warfarin + Aspirin" → learned next word often "bleeding"<br>
+<strong>Pattern 3:</strong> "Codeine + CYP2D6 poor" → learned next word often "no effect"<br><br>
+<em>✓ Factually correct patterns</em><br>
+<em>✗ But model doesn't understand WHY or how to WARN about danger</em>
+                </div>
+            </div>
+
+            <div class="key-insight">
+                <strong>Key Learning:</strong> Pretraining is like reading medical literature—you learn what typically happens, but not what to DO about it. That comes next.
+            </div>
+        </div>
+
+        <!-- STAGE 2: SFT -->
+        <div class="pipeline-section">
+            <h2><span class="stage-number">2</span>Supervised Fine-Tuning: Learning from Expert Mentors</h2>
+            
+            <div class="real-world-example">
+                <h4>👨‍⚕️ Real-World Analogy</h4>
+                <p><strong>Medical Resident's Training with Pharmacists</strong>: An experienced pharmacist works one-on-one with a resident:</p>
+                <div style="margin: 15px 0; padding: 15px; background: white; border-radius: 5px;">
+                    <p><strong>Resident:</strong> "What do we do about renal impairment dosing?"</p>
+                    <p><strong>Expert:</strong> "Use these cutoffs: eGFR >60 = 100% dose, 30-59 = 75%, <30 = 50%. Always monitor."</p>
+                    <p><strong>Result:</strong> Resident learns EXACT safety protocols</p>
+                </div>
+            </div>
+
+            <div class="flex-row">
+                <div class="flex-col">
+                    <h3>The Code: SFT Training Loop</h3>
+                    <div class="code-block"><code>
+<span class="comment"># 5 expert (instruction, response) pairs</span>
+sft_pairs = [
+    (<span class="string">"How adjust for renal?"</span>,
+     <span class="string">"eGFR >60: 100%, 30-59: 75%, <30: 50%"</span>),
+    (<span class="string">"Warfarin + NSAIDs?"</span>,
+     <span class="string">"Avoid. Use acetaminophen"</span>),
+]
+
+<span class="comment"># For each pair:</span>
+<span class="keyword">for</span> instruction, response <span class="keyword">in</span> pairs:
+    output = model(instruction)
+    loss = mean_squared_error(output, response)
+    
+    <span class="comment"># Gradient descent: force output → response</span>
+    weights -= learning_rate * gradient(output, response)
+                    </code></div>
+
+                    <div class="mathematical-formula">
+                        <strong>SFT Loss Function:</strong><br>
+                        L_SFT = -E[Σ log π(expert_token | context)]<br>
+                        <em>Behavioral cloning: match expert demonstrations</em>
+                    </div>
+                </div>
+
+                <div class="flex-col">
+                    <h3>The Output: Much Better Learning!</h3>
+                    <div class="output-block">
+                        <div class="output-line"><strong>STAGE 2: SUPERVISED FINE-TUNING (SFT)</strong></div>
+                        <div class="output-line"></div>
+                        <div class="output-line">Epoch 2/10: Loss = <span class="highlight-blue">0.2061</span></div>
+                        <div class="output-line">Epoch 4/10: Loss = <span class="highlight-blue">0.2018</span></div>
+                        <div class="output-line">Epoch 6/10: Loss = <span class="highlight-blue">0.1977</span></div>
+                        <div class="output-line">Epoch 8/10: Loss = <span class="highlight-blue">0.1938</span></div>
+                        <div class="output-line">Epoch 10/10: Loss = <span class="highlight-blue">0.1900</span></div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-label">Why is Loss MUCH LOWER?</div>
+                        <div class="metric-value">0.19-0.20</div>
+                        <p>Easier task: Match 2-3 good answers (not 100 possible tokens)</p>
+                        <p><strong>Clear learning trend:</strong> 0.2061 → 0.1900 ✓</p>
+                    </div>
+
+                    <div class="success-box">
+                        <strong>✓ What SFT Achieves:</strong><br>
+                        Model learns exact expert safety protocols. When asked "warfarin + aspirin?", it responds with expert's safety-first answer.
+                    </div>
+
+                    <div class="warning-box">
+                        <strong>❌ But SFT Has Limits:</strong><br>
+                        1. Capped by expert quality (can't generate better answers)<br>
+                        2. Distribution mismatch at test time (model generates its own tokens, not expert tokens)<br>
+                        3. Can't rank between multiple good answers
+                    </div>
+                </div>
+            </div>
+
+            <div class="pharmaceutical-example">
+                <h4>💊 5 Expert Demonstrations in the Code</h4>
+                <table class="comparison-table">
+                    <tr>
+                        <th>Question</th>
+                        <th>Expert Response</th>
+                        <th>What Model Learns</th>
+                    </tr>
+                    <tr>
+                        <td>Renal impairment?</td>
+                        <td>"eGFR >60: 100%, 30-59: 75%, <30: 50%"</td>
+                        <td>Specific cutoff-based dosing</td>
+                    </tr>
+                    <tr>
+                        <td>Metformin + cirrhosis?</td>
+                        <td>"Contraindicated. Use insulin, GLP-1, SGLT2i"</td>
+                        <td>Absolute contraindication + alternatives</td>
+                    </tr>
+                    <tr>
+                        <td>Warfarin + NSAIDs?</td>
+                        <td>"Avoid. Use acetaminophen instead"</td>
+                        <td>Safety-first recommendation with substitute</td>
+                    </tr>
+                    <tr>
+                        <td>Penicillin allergy + cephalosporin?</td>
+                        <td>"Depends on type. Non-IgE: maybe safe"</td>
+                        <td>Nuanced allergy assessment</td>
+                    </tr>
+                    <tr>
+                        <td>CYP2D6 poor + codeine?</td>
+                        <td>"Ineffective. Use morphine/oxycodone"</td>
+                        <td>Pharmacogenomic dosing logic</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="key-insight">
+                <strong>Why SFT Isn't Enough:</strong> Imagine a resident trained by exactly copying their mentor's answers. They can reproduce the exact examples, but when facing a novel question, they're stuck. They can't combine knowledge in new ways. That's where RLHF comes in.
+            </div>
+        </div>
+
+        <!-- STAGE 3: REWARD MODEL -->
+        <div class="pipeline-section">
+            <h2><span class="stage-number">3</span>Reward Model: Learning What Makes a Response "Better"</h2>
+            
+            <div class="real-world-example">
+                <h4>👔 Real-World Analogy</h4>
+                <p><strong>Senior Pharmacist Evaluating Resident Responses</strong>: A senior pharmacist reviews pairs of responses from residents:</p>
+                <div style="margin: 15px 0; padding: 15px; background: white; border-radius: 5px;">
+                    <p><strong>Response A (Preferred):</strong> "eGFR >60: 100%, 30-59: 75%, <30: 50% with monitoring" ✓</p>
+                    <p><strong>Response B (Not Preferred):</strong> "Just reduce dose if kidneys are low" ✗</p>
+                    <p><strong>Senior says:</strong> "A is much better because it's specific, evidence-based, and emphasizes safety."</p>
+                </div>
+            </div>
+
+            <div class="flex-row">
+                <div class="flex-col">
+                    <h3>The Code: Bradley-Terry Loss</h3>
+                    <div class="code-block"><code>
+<span class="comment"># 20 pharmaceutical preference pairs</span>
+preferences = [
+    {
+        <span class="string">"prompt"</span>: <span class="string">"Renal dosing?"</span>,
+        <span class="string">"pref"</span>: <span class="string">"eGFR >60: 100%, 30-59: 75%..."</span>,
+        <span class="string">"dispref"</span>: <span class="string">"Just reduce dose"</span>,
+    },
+]
+
+<span class="comment"># Training loop:</span>
+<span class="keyword">for</span> preference <span class="keyword">in</span> preferences:
+    r_pref = reward_model(pref_response)
+    r_dispref = reward_model(dispref_response)
+    
+    <span class="comment"># Bradley-Terry: P(prefer|diff) = sigmoid(r_pref - r_dispref)</span>
+    prob = sigmoid(r_pref - r_dispref)
+    loss = -log(prob)
+    
+    <span class="comment"># Update: increase pref score, decrease dispref score</span>
+    weights -= learning_rate * gradient
+                    </code></div>
+
+                    <div class="mathematical-formula">
+                        <strong>Bradley-Terry Loss:</strong><br>
+                        L_RM = -log σ(r_pref - r_dispref)<br>
+                        where σ(x) = sigmoid(x)<br>
+                        <em>Probability that preferred response truly is better</em>
+                    </div>
+                </div>
+
+                <div class="flex-col">
+                    <h3>The Output: Detailed Analysis</h3>
+                    <div class="output-block">
+                        <div class="output-line"><strong>Training on 20 pharmaceutical preference pairs...</strong></div>
+                        <div class="output-line"></div>
+                        <div class="output-line">Epoch  20: Loss=<span class="highlight-yellow">0.6945</span>, Margin=<span class="highlight-yellow">-0.003</span>, Acc=50%</div>
+                        <div class="output-line">Epoch  40: Loss=<span class="highlight-yellow">0.6966</span>, Margin=<span class="highlight-yellow">-0.007</span>, Acc=40%</div>
+                        <div class="output-line">Epoch  60: Loss=<span class="highlight-yellow">0.6988</span>, Margin=<span class="highlight-yellow">-0.011</span>, Acc=35%</div>
+                        <div class="output-line">Epoch  80: Loss=<span class="highlight-yellow">0.7010</span>, Margin=<span class="highlight-yellow">-0.015</span>, Acc=35%</div>
+                        <div class="output-line">Epoch 100: Loss=<span class="highlight-yellow">0.7032</span>, Margin=<span class="highlight-yellow">-0.020</span>, Acc=25%</div>
+                    </div>
+
+                    <div class="insight-box">
+                        <strong>🔍 Deep Dive into Each Metric:</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Loss: 0.6945 → 0.7032</div>
+                    <div class="metric-value">Increasing ⚠️</div>
+                    <p><strong>Why?</strong> As model learns, it pushes scores more negative and further apart. Sigmoid of larger differences = higher loss area. <strong>This is NORMAL</strong> for Bradley-Terry.</p>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-label">Margin: -0.003 → -0.020</div>
+                    <div class="metric-value">Negative ⚠️</div>
+                    <p><strong>Why?</strong> r_pref - r_dispref is negative, meaning preferred response gets LOWER score. Indicates the text encoding is too simple. In real systems with embeddings, margin would be positive and growing.</p>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-label">Accuracy: 50% → 25%</div>
+                    <div class="metric-value">Declining ⚠️</div>
+                    <p><strong>Why?</strong> Accuracy = P(r_pref > r_dispref). Declining accuracy reflects negative margins. In production (with proper embeddings), should reach 80-95%.</p>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-label">r(pref) & r(dispref)</div>
+                    <div class="metric-value">Both → -10</div>
+                    <p><strong>Observation:</strong> Both scores drift more negative. <strong>Key point:</strong> The separation (margin) between them is what matters. Growing separation = learning is happening.</p>
+                </div>
+            </div>
+
+            <div class="pharmaceutical-example">
+                <h4>💊 Why Reward Models Matter: 20 Pharmaceutical Preferences</h4>
+                <button class="toggle-btn" onclick="toggleContent(this)">Show Preference Examples</button>
+                <div class="toggle-content">
+                    <table class="comparison-table" style="margin-top: 15px;">
+                        <tr>
+                            <th>Question</th>
+                            <th>Preferred Response</th>
+                            <th>Dispreferred Response</th>
+                        </tr>
+                        <tr>
+                            <td>Warfarin + NSAIDs?</td>
+                            <td>No. 2-3x bleeding risk. Use acetaminophen.</td>
+                            <td>One NSAID shouldn't matter.</td>
+                        </tr>
+                        <tr>
+                            <td>Metformin eGFR 28?</td>
+                            <td>Contraindicated. Lactic acidosis. Use insulin, GLP-1, SGLT2i.</td>
+                            <td>Fine to use. Monitor kidneys.</td>
+                        </tr>
+                        <tr>
+                            <td>ACE + K-sparing?</td>
+                            <td>Both retain K+. Combined: severe hyperkalemia. Monitor closely.</td>
+                            <td>Both are kidney-protective. No special concern.</td>
+                        </tr>
+                        <tr>
+                            <td>CYP2D6 poor + codeine?</td>
+                            <td>Ineffective. No morphine conversion. Use morphine/oxycodone.</td>
+                            <td>Should still work. Try higher dose.</td>
+                        </tr>
+                        <tr>
+                            <td>Pregnancy + ACE inhibitor?</td>
+                            <td>Contraindicated 2nd/3rd trimester. Fetal renal dysgenesis. Switch methyldopa.</td>
+                            <td>Category C so probably fine.</td>
+                        </tr>
+                        <tr>
+                            <td>Grapefruit + statin?</td>
+                            <td>Yes. Inhibits CYP3A4. 10-16x statin levels. Muscle toxicity risk.</td>
+                            <td>Minor interaction. One glass is fine.</td>
+                        </tr>
+                        <tr>
+                            <td>Lithium toxicity?</td>
+                            <td>Therapeutic 0.6-1.2. Toxicity >2: tremor, confusion. Hemodialysis if severe.</td>
+                            <td>Just reduce dose if patient feels bad.</td>
+                        </tr>
+                        <tr>
+                            <td>Tricyclics in elderly?</td>
+                            <td>Caution: anticholinergic (confusion, falls). Consider SSRIs.</td>
+                            <td>Safe. No special precautions needed.</td>
+                        </tr>
+                        <tr>
+                            <td>Macrolides + QT?</td>
+                            <td>Yes. Block cardiac K+ channels. Risky with other QT drugs.</td>
+                            <td>Unlikely to be major problem.</td>
+                        </tr>
+                        <tr>
+                            <td>SSRI discontinuation?</td>
+                            <td>Taper over 4 weeks. Dizziness, nausea, electric shocks expected.</td>
+                            <td>Stop immediately; shouldn't cause problems.</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="key-insight">
+                <strong>Critical Insight:</strong> The Reward Model learns what makes a response "good" from expert preferences. These aren't demonstrations—they're <span class="highlight-blue">comparisons</span>. RM learns: "Response A is clearly better than B because of X, Y, Z". This allows the model to generate <strong>novel, better-than-training responses</strong> in the next stage (PPO).
+            </div>
+        </div>
+
+        <!-- COMPREHENSIVE EXAMPLE -->
+        <div class="pipeline-section">
+            <h2>🎯 Complete Real-World Example: Metformin Safety</h2>
+            <p style="margin-bottom: 20px;"><strong>Question:</strong> "Can I use metformin if my kidney function is low (eGFR = 28)?"</p>
+
+            <div class="flex-row">
+                <div class="flex-col">
+                    <h3>Stage 1: Pretraining (Raw Patterns)</h3>
+                    <div class="code-block" style="background: #fff3cd; color: #333; border-left: 4px solid #ffc107;">
+Learned pattern from medical literature:<br>
+"eGFR 28" + "metformin" → "lactic acidosis"<br><br>
+<strong>Problem:</strong> Model just continues the pattern without understanding danger or how to help.
+                    </div>
+                </div>
+
+                <div class="flex-col">
+                    <h3>Stage 2: SFT (Expert Teaching)</h3>
+                    <div class="code-block" style="background: #d4edda; color: #333; border-left: 4px solid #28a745;">
+Expert demonstration:<br>
+Q: "Metformin with eGFR 28?"<br>
+A: "Contraindicated. eGFR should be ≥30.<br>Lactic acidosis risk high.<br>Use: insulin, GLP-1, SGLT2i"<br><br>
+<strong>Model learns:</strong> Specific, safe, alternatives-provided protocol
+                    </div>
+                </div>
+
+                <div class="flex-col">
+                    <h3>Stage 3: RM (Preference Learning)</h3>
+                    <div class="code-block" style="background: #d1ecf1; color: #333; border-left: 4px solid #17a2b8;">
+Expert preference:<br>
+PREFERRED: "Contraindicated. eGFR ≥30. Lactic acidosis. Use: insulin, GLP-1..."<br><br>
+DISPREFERRED: "Fine to use. Just monitor kidneys."<br><br>
+<strong>RM learns:</strong> Specific contraindications + mechanisms score higher than vague reassurance
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WHY ALL THREE MATTER -->
+        <div class="pipeline-section">
+            <h2>🏆 Why All Three Stages Are Essential</h2>
+            <table class="comparison-table">
+                <tr>
+                    <th>Stage</th>
+                    <th>What It Learns</th>
+                    <th>Critical Limitation</th>
+                    <th>Result</th>
+                </tr>
+                <tr>
+                    <td><strong>Pretraining</strong></td>
+                    <td>Statistical patterns (fever→viral, GFR→dose)</td>
+                    <td>❌ No value alignment or safety awareness</td>
+                    <td>Foundation but dangerous</td>
+                </tr>
+                <tr>
+                    <td><strong>SFT</strong></td>
+                    <td>Expert behaviors (exact dosing tables, protocols)</td>
+                    <td>❌ Limited by dataset; can't improve beyond examples</td>
+                    <td>Safe but constrained</td>
+                </tr>
+                <tr>
+                    <td><strong>Reward Model</strong></td>
+                    <td>Human preferences (what experts prefer and why)</td>
+                    <td>❌ Requires preference data (expensive) but enables...</td>
+                    <td>Capable and aligned</td>
+                </tr>
+                <tr>
+                    <td><strong>PPO (Next)</strong></td>
+                    <td>RL policy optimization (generate responses RM likes)</td>
+                    <td>✓ Can exceed expert quality</td>
+                    <td>Expert-level+ performance</td>
+                </tr>
+            </table>
+
+            <div class="success-box" style="margin-top: 20px;">
+                <strong>✓ The Magic:</strong> By Stage 3, the model can generate <strong>novel responses that expert pharmacists prefer</strong>, even though no expert demonstrated that exact response. The RM acts as a "learned expert" that guides generation.
+            </div>
+        </div>
+
+        <!-- CODE WALKTHROUGH -->
+        <div class="pipeline-section">
+            <h2>💻 Code Walkthrough for Classroom Teaching</h2>
+
+            <h3>Pretraining Loop (Easy to Understand)</h3>
+            <div class="code-block"><code>
+<span class="keyword">for</span> context, target <span class="keyword">in</span> sequences:
+    <span class="comment"># Step 1: Convert context to number vector</span>
+    context_vector = encode(context)  
+    
+    <span class="comment"># Step 2: Run through model, get probabilities</span>
+    probs = softmax(context_vector)   <span class="comment"># 100 possible tokens</span>
+    
+    <span class="comment"># Step 3: Find probability of correct token</span>
+    target_prob = probs[target_idx]
+    
+    <span class="comment"># Step 4: Loss = how bad is our prediction?</span>
+    loss = -log(target_prob)           <span class="comment"># log: makes small probs big</span>
+    
+    <span class="comment"># Step 5: Update model to increase target_prob</span>
+    gradient = (predicted_probs - one_hot_target)
+    weights -= learning_rate * gradient
+            </code></div>
+
+            <div class="key-insight">
+                <strong>Teaching Analogy:</strong> Imagine playing 20 questions: <br><br>
+                1. "I'm thinking of a number 1-100" (10 options in pretraining)<br>
+                2. You guess randomly: 50% chance of being right = loss = log(2) ≈ 0.7<br>
+                3. I tell you "too high", you update your beliefs<br>
+                4. Next guess: 25-50 range, higher probability of being right = loss decreases<br>
+                5. This is cross-entropy loss in action!
+            </div>
+
+            <h3>Reward Model Loop (The Key Innovation)</h3>
+            <div class="code-block"><code>
+<span class="keyword">for</span> prompt, preferred, dispreferred <span class="keyword">in</span> preferences:
+    <span class="comment"># Step 1: Score both responses</span>
+    r_pref = reward_model(preferred)
+    r_dispref = reward_model(dispreferred)
+    
+    <span class="comment"># Step 2: Compute margin (how much better is preferred?)</span>
+    margin = r_pref - r_dispref
+    
+    <span class="comment"># Step 3: Bradley-Terry: what's P(preferred > dispreferred)?</span>
+    prob = sigmoid(margin)             <span class="comment"># 0.5 if margin=0, close to 1 if margin >> 0</span>
+    
+    <span class="comment"># Step 4: Loss = surprise at seeing this preference</span>
+    loss = -log(prob)                  <span class="comment"># low if prob ≈ 1, high if prob ≈ 0.5</span>
+    
+    <span class="comment"># Step 5: Update model</span>
+    gradient = (prob - 1.0)            <span class="comment"># gradient points to minimize surprise</span>
+    weights += learning_rate * gradient * (features_pref - features_dispref)
+            </code></div>
+
+            <div class="key-insight">
+                <strong>Teaching Analogy:</strong> Imagine taste-testing 20 wines and ranking them:<br><br>
+                1. Model tastes two wines, predicts which is better<br>
+                2. If model says "Red is better" but it's actually white: big error<br>
+                3. If model says "Red is better" and it IS better: small error<br>
+                4. Model learns from thousands of such pairwise comparisons<br>
+                5. Eventually, model's predictions align with expert's taste!<br><br>
+                This is how Reward Models learn to rate responses like expert pharmacists do.
+            </div>
+        </div>
+
+        <!-- KEY TAKEAWAYS -->
+        <div class="pipeline-section">
+            <h2>📚 Key Takeaways for Your Class</h2>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                <div class="key-insight">
+                    <strong>1. Three Stages, Three Problems</strong><br>
+                    Each stage solves a different limitation of the previous stage. No single approach creates aligned AI.
+                </div>
+
+                <div class="key-insight">
+                    <strong>2. Loss Values Are Relative</strong><br>
+                    Don't compare loss=4.6 (pretraining) with loss=0.19 (SFT). Compare trends within each stage.
+                </div>
+
+                <div class="key-insight">
+                    <strong>3. Margins Tell the Story</strong><br>
+                    In RM training, margin = r_pref - r_dispref. Growing separation = learning, regardless of sign.
+                </div>
+
+                <div class="key-insight">
+                    <strong>4. Bradley-Terry = Preference Learning</strong><br>
+                    RM doesn't see full expert solutions—just comparisons. This is MORE powerful because it enables novel responses.
+                </div>
+
+                <div class="key-insight">
+                    <strong>5. Alignment Is Hard</strong><br>
+                    Creating safe pharmaceutical AI requires all three stages + careful evaluation. No shortcuts.
+                </div>
+
+                <div class="key-insight">
+                    <strong>6. Embedding Quality Matters</strong><br>
+                    This program uses simple text features. Real systems use 768+ dimensional embeddings. That's why production RMs achieve 90%+ accuracy.
+                </div>
+            </div>
+        </div>
+
+        <!-- NEXT PROGRAM -->
+        <div class="pipeline-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <h2 style="color: white; border-bottom-color: white;">🚀 What's Next: Program 2 (PPO)</h2>
+            <p style="margin-top: 10px; font-size: 1.1em;">
+                <strong>Input:</strong> Pretrained model + SFT model + Trained Reward Model<br>
+                <strong>Process:</strong> Use PPO (Proximal Policy Optimization) to optimize LLM policy<br>
+                <strong>Output:</strong> Model that generates responses preferred by expert pharmacists<br>
+                <strong>Magic:</strong> Generates better-than-training responses through RL optimization
+            </p>
+            <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.2); border-radius: 10px;">
+                <p><strong>🎯 The Goal:</strong> Transform a model that copies experts into one that EXCEEDS them—all while maintaining safety through the RM guidance.</p>
+            </div>
+        </div>
+
+        <footer>
+            <p>📖 LLM Training Pipeline | Pharmaceutical AI Alignment | Educational Infographic</p>
+            <p>Built with ❤️ for classroom teaching and understanding the complete LLM training journey</p>
+        </footer>
+    </div>
+
+    <script>
+        function toggleContent(button) {
+            const content = button.nextElementSibling;
+            content.classList.toggle('active');
+            button.textContent = content.classList.contains('active') 
+                ? 'Hide Preference Examples' 
+                : 'Show Preference Examples';
+        }
+    </script>
+</body>
+</html>

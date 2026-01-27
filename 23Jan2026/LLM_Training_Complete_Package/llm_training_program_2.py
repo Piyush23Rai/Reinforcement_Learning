@@ -7,6 +7,7 @@ import numpy as np
 from scipy.special import expit  # Logistic function
 import matplotlib.pyplot as plt
 import warnings
+import os
 warnings.filterwarnings('ignore')
 
 print("\n" + "="*80)
@@ -370,8 +371,12 @@ def main():
     axes[1, 1].grid(True, axis='y', alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig("/mnt/user-data/outputs/llm_program_2_results.png", dpi=150, bbox_inches='tight')
-    print("✓ Saved: llm_program_2_results.png\n")
+    # Save to a local outputs directory relative to this script. Create it if missing.
+    output_dir = os.path.join(os.path.dirname(__file__), "outputs")
+    os.makedirs(output_dir, exist_ok=True)
+    out_path = os.path.join(output_dir, "llm_program_2_results.png")
+    plt.savefig(out_path, dpi=150, bbox_inches='tight')
+    print(f"✓ Saved: {out_path}\n")
     
     # Final Summary
     print("="*80)

@@ -37,7 +37,8 @@ def train():
     # Agents
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     agents = [MADDPGAgent(i, state_dim=2, action_dim=1, 
-                         num_agents=num_agents, device=device, lr=0.001)
+                         num_agents=num_agents, device=device, lr=0.001) 
+              #Change the lr to 0.01 and run trainig and capture the cost
               for i in range(num_agents)]
     
     # Replay buffer

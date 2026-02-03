@@ -1,0 +1,41 @@
+# Bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+env/
+*/venv/
+*/.venv/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# OS files
+.DS_Store
+
+# IDEs/editors
+.vscode/
+.idea/
+
+# Test / cache
+.pytest_cache/
+*.cache
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Archives and large binary outputs
+*.zip
+*.tar.gz
+*.whl
+
+# Images or datasets (uncomment if you want to ignore all images)
+# *.png
+# *.jpg

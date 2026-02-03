@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # Main MARL training service
+  marl-train:
+    build: .
+    container_name: marl-training
+    runtime: nvidia  # Enable GPU support
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - WANDB_API_KEY=${WANDB_API_KEY:-}
+    volumes:
+      - ./results:/app/results
+      - ./models:/app/models
+      - ./logs:/app/logs
+    command: python scripts/train_maddpg.py --env simple_spread --episodes 5000
+
+  # TensorBoard service for monitoring
+  tensorboard:
+    build: .
+    container_name: marl-tensorboard
+    ports:
+      - "6006:6006"
+    volumes:
+      - ./logs:/app/logs
+    command: tensorboard --logdir=/app/logs --host=0.0.0.0
+
+  # Jupyter notebook for interactive research
+  jupyter:
+    build: .
+    container_name: marl-jupyter
+    runtime: nvidia
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./:/app
+    command: jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+
+# Usage:
+# ─────────────────────────────────────────────────────────────────────────────
+# Build:           docker-compose build
+# Train:           docker-compose up marl-train
+# TensorBoard:     docker-compose up tensorboard
+# Jupyter:         docker-compose up jupyter
+# All services:    docker-compose up
+# Stop:            docker-compose down

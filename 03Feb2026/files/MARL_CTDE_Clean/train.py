@@ -19,15 +19,17 @@ def train():
     print("="*70 + "\n")
     
     # Configuration
-    num_agents = 3
+    num_agents = 5
     num_episodes = 200
     batch_size = 32
     update_frequency = 4
+    learning_rate = 0.01
     
     print(f"Configuration:")
     print(f"  Agents: {num_agents}")
     print(f"  Episodes: {num_episodes}")
     print(f"  Batch size: {batch_size}")
+    print(f"  Learning Rate: {learning_rate}")
     print(f"  Device: {'GPU' if torch.cuda.is_available() else 'CPU'}")
     print()
     
@@ -37,7 +39,7 @@ def train():
     # Agents
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     agents = [MADDPGAgent(i, state_dim=2, action_dim=1, 
-                         num_agents=num_agents, device=device, lr=0.001) 
+                         num_agents=num_agents, device=device, lr=learning_rate) 
               #Change the lr to 0.01 and run trainig and capture the cost
               for i in range(num_agents)]
     

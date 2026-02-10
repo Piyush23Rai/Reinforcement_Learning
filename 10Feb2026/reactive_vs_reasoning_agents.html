@@ -1,0 +1,2039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>From Chatbots to Level-3 Agents: Reactive vs Reasoning Architectures</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        nav {
+            background: #2c3e50;
+            padding: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        nav a:hover {
+            background: #34495e;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        section {
+            margin-bottom: 60px;
+        }
+
+        h2 {
+            color: #2c3e50;
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #3498db;
+        }
+
+        h3 {
+            color: #34495e;
+            font-size: 1.5em;
+            margin: 25px 0 15px 0;
+        }
+
+        h4 {
+            color: #555;
+            font-size: 1.2em;
+            margin: 20px 0 10px 0;
+        }
+
+        .definition {
+            background: #e8f4f8;
+            border-left: 5px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .theorem {
+            background: #fff9e6;
+            border-left: 5px solid #f39c12;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .example {
+            background: #e8f8f5;
+            border-left: 5px solid #27ae60;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .warning {
+            background: #fadbd8;
+            border-left: 5px solid #e74c3c;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .math-block {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            border: 1px solid #dee2e6;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .comparison-table th {
+            background: #3498db;
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+
+        .comparison-table td {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .comparison-table tr:hover {
+            background: #e8f4f8;
+        }
+
+        .interactive-demo {
+            background: #f8f9fa;
+            padding: 30px;
+            margin: 30px 0;
+            border-radius: 10px;
+            border: 2px solid #3498db;
+        }
+
+        .agent-viz {
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .agent-box {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .agent-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .agent-box h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .architecture-diagram {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            text-align: center;
+        }
+
+        .flow-step {
+            display: inline-block;
+            padding: 15px 25px;
+            margin: 10px;
+            background: #3498db;
+            color: white;
+            border-radius: 8px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .arrow {
+            display: inline-block;
+            font-size: 2em;
+            color: #7f8c8d;
+            margin: 0 10px;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin: 10px 5px;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .simulation-output {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            min-height: 150px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        .level-indicator {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+            margin: 5px;
+        }
+
+        .level-0 {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .level-1 {
+            background: #e67e22;
+            color: white;
+        }
+
+        .level-3 {
+            background: #27ae60;
+            color: white;
+        }
+
+        .complexity-analysis {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .complexity-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-top: 4px solid #3498db;
+        }
+
+        .complexity-card h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .formula {
+            font-size: 1.1em;
+            color: #e74c3c;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .agent-viz {
+                flex-direction: column;
+            }
+            
+            header h1 {
+                font-size: 1.8em;
+            }
+            
+            nav ul {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 From Chatbots to Level-3 Agents</h1>
+            <p>Long-Horizon Reasoning & Dynamic Adaptation: Architectural Foundations</p>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="#introduction">Introduction</a></li>
+                <li><a href="#taxonomy">Agent Taxonomy</a></li>
+                <li><a href="#reactive">Reactive Agents</a></li>
+                <li><a href="#reasoning">Reasoning Agents</a></li>
+                <li><a href="#mathematics">Mathematical Foundations</a></li>
+                <li><a href="#architecture">Architecture Comparison</a></li>
+                <li><a href="#implementation">Case Studies</a></li>
+                <li><a href="#implementation-demo">Demo</a></li>
+            </ul>
+        </nav>
+
+        <div class="content">
+            <section id="introduction">
+                <h2>1. Introduction: The Evolution of Agent Intelligence</h2>
+                
+                <p>The journey from simple chatbots to sophisticated reasoning agents represents a fundamental shift in AI architecture. While early systems operated on simple stimulus-response patterns, modern Level-3 agents employ complex planning, long-horizon reasoning, and dynamic adaptation to achieve goals in uncertain environments.</p>
+
+                <div class="definition">
+                    <h4>📘 Definition: Agent Autonomy Levels</h4>
+                    <p><strong>Level 0 (Simple Reflex)</strong>: Direct state-to-action mapping with no memory or learning.</p>
+                    <p><strong>Level 1 (Model-Based Reflex)</strong>: Maintains internal state representation but no explicit planning.</p>
+                    <p><strong>Level 2 (Goal-Based)</strong>: Has explicit goals but limited planning depth.</p>
+                    <p><strong>Level 3 (Planning & Reasoning)</strong>: Employs multi-step lookahead, tree search, and dynamic replanning.</p>
+                </div>
+
+                <div class="example">
+                    <h4>🎯 Retail Example: Inventory Management Agent</h4>
+                    <p><strong>Reactive (Level 1)</strong>: "If inventory < threshold, order fixed quantity"</p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Decision time: < 1ms per SKU</li>
+                        <li>Works for: Stable demand, predictable products</li>
+                        <li>Problem: Cannot handle seasonal patterns, promotions, or supply chain disruptions</li>
+                    </ul>
+                    <p style="margin-top: 15px;"><strong>Reasoning (Level 3)</strong>: "Analyze demand patterns, forecast 30-day horizon, simulate different ordering policies, select optimal strategy considering supplier lead times, storage costs, and demand uncertainty"</p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Decision time: 100ms - 1s per planning cycle</li>
+                        <li>Handles: Multi-echelon supply chains, demand forecasting, promotion planning</li>
+                        <li>Optimizes: Inventory carrying costs vs. stockout risk over entire horizon</li>
+                        <li>Real impact: 15-25% reduction in inventory costs while maintaining service levels</li>
+                    </ul>
+                </div>
+
+                <div class="example">
+                    <h4>🏦 Banking Example: Fraud Detection System</h4>
+                    <p><strong>Reactive (Level 1)</strong>: Real-time transaction scoring</p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Input: Transaction amount, merchant, location, time</li>
+                        <li>Processing: Neural network inference → fraud probability</li>
+                        <li>Action: Approve, decline, or flag for review</li>
+                        <li>Latency requirement: < 100ms (customer waiting at checkout)</li>
+                        <li>Why reactive: Must decide instantly, no time for multi-step analysis</li>
+                    </ul>
+                    <p style="margin-top: 15px;"><strong>Reasoning (Level 3)</strong>: Account investigation and recovery strategy</p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Trigger: Suspicious pattern detected by reactive system</li>
+                        <li>Planning: Simulate different investigation approaches, estimate recovery probability</li>
+                        <li>Horizon: 30-90 days (legal proceedings, customer contact, evidence gathering)</li>
+                        <li>Optimization: Maximize expected recovery minus investigation costs</li>
+                        <li>Why reasoning: Complex multi-step process with uncertainty and long-term consequences</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="taxonomy">
+                <h2>2. Agent Taxonomy & Capability Levels</h2>
+
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Level</th>
+                            <th>Type</th>
+                            <th>Planning Horizon</th>
+                            <th>Memory</th>
+                            <th>Adaptation</th>
+                            <th>Retail Examples</th>
+                            <th>Banking Examples</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="level-indicator level-0">L0</span></td>
+                            <td>Simple Reflex</td>
+                            <td>0 steps (immediate)</td>
+                            <td>None</td>
+                            <td>None</td>
+                            <td>Simple chatbots, basic POS systems</td>
+                            <td>ATM balance checks, basic calculators</td>
+                        </tr>
+                        <tr>
+                            <td><span class="level-indicator level-1">L1</span></td>
+                            <td>Model-Based Reflex</td>
+                            <td>1 step</td>
+                            <td>State tracking</td>
+                            <td>State updates only</td>
+                            <td>Reorder-point inventory, product recommendations</td>
+                            <td>Fraud detection, transaction approval</td>
+                        </tr>
+                        <tr>
+                            <td><span class="level-indicator level-3">L3</span></td>
+                            <td>Planning & Reasoning</td>
+                            <td>H steps (H >> 1)</td>
+                            <td>Episodic + semantic</td>
+                            <td>Learning + replanning</td>
+                            <td>Dynamic pricing, multi-echelon inventory, promotion planning</td>
+                            <td>Portfolio optimization, algorithmic trading, loan pricing</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="agent-viz">
+                    <div class="agent-box">
+                        <h4>🔵 Reactive Agent</h4>
+                        <div class="architecture-diagram">
+                            <div class="flow-step">Perceive</div>
+                            <div class="arrow">→</div>
+                            <div class="flow-step">Act</div>
+                        </div>
+                        <p><strong>Latency:</strong> O(1) - Constant</p>
+                        <p><strong>Optimality:</strong> Myopic</p>
+                        <p><strong>Robustness:</strong> Low</p>
+                    </div>
+
+                    <div class="agent-box">
+                        <h4>🟢 Reasoning Agent</h4>
+                        <div class="architecture-diagram">
+                            <div class="flow-step">Perceive</div>
+                            <div class="arrow">→</div>
+                            <div class="flow-step">Plan</div>
+                            <div class="arrow">→</div>
+                            <div class="flow-step">Simulate</div>
+                            <div class="arrow">→</div>
+                            <div class="flow-step">Act</div>
+                            <div class="arrow">↻</div>
+                            <div class="flow-step">Replan</div>
+                        </div>
+                        <p><strong>Latency:</strong> O(b<sup>H</sup>) - Exponential in horizon</p>
+                        <p><strong>Optimality:</strong> Near-optimal (bounded regret)</p>
+                        <p><strong>Robustness:</strong> High (adaptive)</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="reactive">
+                <h2>3. Reactive Agents: Architecture & Limitations</h2>
+
+                <h3>3.1 Mathematical Formulation</h3>
+
+                <div class="math-block">
+                    <strong>Reactive Agent as Markov Decision Process (MDP):</strong><br><br>
+                    
+                    Agent: (S, A, T, R, γ, π)<br><br>
+                    
+                    • S: State space<br>
+                    • A: Action space<br>
+                    • T(s'|s,a): Transition function<br>
+                    • R(s,a,s'): Reward function<br>
+                    • γ ∈ [0,1): Discount factor<br>
+                    • π: S → A: Policy (deterministic mapping)<br><br>
+                    
+                    <strong>Policy:</strong><br>
+                    π(s) = argmax_a Q(s,a)<br><br>
+                    
+                    where Q(s,a) is learned from experience without explicit planning.
+                </div>
+
+                <div class="theorem">
+                    <h4>⚠️ Limitation: Myopic Decision Making</h4>
+                    <p>A reactive agent with discount factor γ → 0 becomes purely myopic:</p>
+                    <div class="math-block">
+                        V^π(s) = E[R(s,π(s),s')]
+                    </div>
+                    <p>This fails to account for long-term consequences. For tasks requiring multi-step coordination, reactive agents achieve suboptimal performance bounded by:</p>
+                    <div class="math-block">
+                        Regret(T) = Ω(T^(1/2))
+                    </div>
+                    <p>where T is the number of decision steps.</p>
+                </div>
+
+                <h3>3.2 Algorithmic Implementation</h3>
+
+                <div class="math-block">
+                    <strong>Q-Learning (Reactive RL):</strong><br><br>
+                    
+                    Q(s,a) ← Q(s,a) + α[r + γ max_a' Q(s',a') - Q(s,a)]<br><br>
+                    
+                    <strong>Characteristics:</strong><br>
+                    • No explicit planning (model-free)<br>
+                    • One-step lookahead only<br>
+                    • Time complexity per decision: O(|A|)<br>
+                    • Space complexity: O(|S| × |A|)
+                </div>
+
+                <div class="example">
+                    <h4>🎯 Retail Example: Customer Service Chatbot (Reactive)</h4>
+                    <p><strong>Input:</strong> "What's the weather today?"</p>
+                    <p><strong>Processing:</strong> Pattern match → Retrieve template → Fill slots</p>
+                    <p><strong>Output:</strong> "The weather is sunny, 72°F"</p>
+                    <p><strong>Limitation:</strong> Cannot handle "What should I wear given I have an outdoor meeting at 3pm and it might rain?"</p>
+                    <p>This requires multi-step reasoning: (1) Check weather forecast, (2) Identify meeting time, (3) Assess rain probability, (4) Consider appropriate attire, (5) Provide recommendation.</p>
+                    
+                    <p style="margin-top: 20px;"><strong>Better Retail Chatbot Example:</strong> "Do you have this shirt in blue?"</p>
+                    <p><strong>Reactive Response:</strong> "Let me check inventory... Yes, we have blue available in sizes M, L, XL."</p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Single database lookup: O(1) time</li>
+                        <li>Pattern: Query → Database → Response</li>
+                        <li>Perfect for: Simple factual queries, inventory checks, order status</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;"><strong>Complex Query Requiring Reasoning:</strong> "I need an outfit for a business casual event next week, budget $200, and I prefer blues and grays. What do you recommend?"</p>
+                    <p><strong>Reasoning Required:</strong></p>
+                    <ol style="margin-left: 20px; margin-top: 10px;">
+                        <li>Parse constraints: business casual, $200 budget, color preferences</li>
+                        <li>Search inventory across multiple categories (shirts, pants, accessories)</li>
+                        <li>Generate outfit combinations (planning)</li>
+                        <li>Filter by budget and style preferences</li>
+                        <li>Rank by likelihood of customer satisfaction</li>
+                        <li>Present top 3 complete outfits with reasoning</li>
+                    </ol>
+                    <p style="margin-top: 10px;">This multi-step process requires planning across a combinatorial space of products, making it unsuitable for simple reactive approaches.</p>
+                </div>
+            </section>
+
+            <section id="reasoning">
+                <h2>4. Reasoning Agents: Long-Horizon Planning</h2>
+
+                <h3>4.1 Planning Horizon & Value Estimation</h3>
+
+                <div class="math-block">
+                    <strong>Value Function with Horizon H:</strong><br><br>
+                    
+                    V^π_H(s) = E_π[∑_(t=0)^H γ^t R(s_t, a_t, s_(t+1)) | s_0 = s]<br><br>
+                    
+                    <strong>Optimal Value via Planning:</strong><br><br>
+                    
+                    V*(s) = max_π V^π_∞(s)<br><br>
+                    
+                    Computed via tree search to depth H with value estimates:<br><br>
+                    
+                    Q*(s,a) = E[R(s,a,s')] + γ ∑_(s') T(s'|s,a) V*(s')
+                </div>
+
+                <div class="definition">
+                    <h4>📘 Long-Horizon Reasoning</h4>
+                    <p>An agent exhibits long-horizon reasoning if it explicitly considers state trajectories of length H > 1 before action selection. The computational cost grows as O(b^H) where b = |A| is the branching factor.</p>
+                    <p><strong>Key distinction:</strong> Reasoning agents simulate future outcomes before acting, while reactive agents select actions based solely on learned value estimates.</p>
+                </div>
+
+                <h3>4.2 Monte Carlo Tree Search (MCTS)</h3>
+
+                <div class="math-block">
+                    <strong>MCTS Algorithm:</strong><br><br>
+                    
+                    For each simulation from root state s:<br><br>
+                    
+                    1. <strong>Selection:</strong> UCB1 policy<br>
+                       a* = argmax_a [Q(s,a) + c√(ln(N(s))/N(s,a))]<br><br>
+                    
+                    2. <strong>Expansion:</strong> Add new node if N(s) > threshold<br><br>
+                    
+                    3. <strong>Simulation:</strong> Rollout policy to depth H<br><br>
+                    
+                    4. <strong>Backpropagation:</strong><br>
+                       Q(s,a) ← Q(s,a) + (G - Q(s,a))/N(s,a)<br>
+                       N(s,a) ← N(s,a) + 1<br><br>
+                    
+                    where G = ∑_(t=0)^H γ^t r_t is the return from simulation.
+                </div>
+
+                <div class="theorem">
+                    <h4>🎓 Theorem: MCTS Convergence</h4>
+                    <p>With sufficient simulations, MCTS converges to the optimal policy:</p>
+                    <div class="math-block">
+                        lim_(n→∞) P(a_n = a*) = 1
+                    </div>
+                    <p>where n is the number of simulations and a* is the optimal action. The convergence rate is bounded by:</p>
+                    <div class="math-block">
+                        Regret(n) = O(√(|A| log(n) / n))
+                    </div>
+                </div>
+
+                <h3>4.3 Dynamic Adaptation & Replanning</h3>
+
+                <div class="math-block">
+                    <strong>Replanning Trigger Conditions:</strong><br><br>
+                    
+                    1. <strong>Model Error:</strong> |T_predicted(s'|s,a) - T_observed| > ε<br><br>
+                    
+                    2. <strong>Value Degradation:</strong> V_current(s) < τ × V_planned(s)<br><br>
+                    
+                    3. <strong>Temporal:</strong> t mod k = 0 (periodic replanning)<br><br>
+                    
+                    <strong>Replanning Cost:</strong><br>
+                    C_replan = O(b^H) + O(n) for n simulations
+                </div>
+
+                <div class="warning">
+                    <h4>⚠️ Computational Complexity Trade-off</h4>
+                    <p>Reasoning agents face a fundamental trade-off between decision quality and computational cost:</p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Deeper planning (↑ H):</strong> Better decisions but exponential cost O(b^H)</li>
+                        <li><strong>More simulations (↑ n):</strong> Tighter value estimates but linear cost O(n)</li>
+                        <li><strong>Frequent replanning (↓ k):</strong> Better adaptation but higher total cost T/k × C_replan</li>
+                    </ul>
+                    <p style="margin-top: 10px;">Production systems must carefully balance these factors based on latency requirements and problem complexity.</p>
+                </div>
+
+                <div class="example">
+                    <h4>🎯 Banking Example: Algorithmic Trading Strategy (Reasoning Agent)</h4>
+                    <p><strong>State:</strong> Current portfolio positions, market prices, order book depth, volatility estimates, news sentiment, risk exposure</p>
+                    <p><strong>Planning Horizon:</strong> H = 20 trading periods (could be minutes, hours, or days)</p>
+                    <p><strong>Actions:</strong> Buy, sell, or hold for each asset; position sizes; limit vs market orders</p>
+                    <p><strong>Reasoning Process:</strong></p>
+                    <ol style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Simulate market scenarios</strong> using probabilistic price models (geometric Brownian motion + jump diffusion)</li>
+                        <li><strong>For each scenario</strong>, plan trading sequence using dynamic programming to maximize expected return</li>
+                        <li><strong>Evaluate policies</strong> across scenarios considering:
+                            <ul style="margin-left: 20px;">
+                                <li>Expected PnL (profit and loss)</li>
+                                <li>Value-at-Risk (VaR) at 95% confidence</li>
+                                <li>Transaction costs (spread, slippage, fees)</li>
+                                <li>Market impact of large orders</li>
+                                <li>Regulatory capital requirements</li>
+                            </ul>
+                        </li>
+                        <li><strong>Select policy</strong> that maximizes risk-adjusted return (Sharpe ratio) over planning horizon</li>
+                        <li><strong>Execute first action</strong>, observe market response and fill prices</li>
+                        <li><strong>Replan</strong> if market moves > 2 standard deviations from forecast, or every 5 periods</li>
+                    </ol>
+                    
+                    <div class="math-block" style="margin-top: 15px;">
+                        <strong>Objective Function:</strong><br><br>
+                        
+                        max_π E[Σ_(t=0)^H γ^t (R_t - c_t - λ·VaR_t)]<br><br>
+                        
+                        where:<br>
+                        • R_t = trading returns at time t<br>
+                        • c_t = transaction costs<br>
+                        • λ·VaR_t = risk penalty (risk-aversion parameter × Value-at-Risk)<br>
+                        • γ = discount factor ≈ 0.99<br><br>
+                        
+                        <strong>Why Reasoning is Essential:</strong><br>
+                        • Market impact: Large orders move prices unfavorably<br>
+                        • Execution planning: Must split orders across time<br>
+                        • Risk management: Current action affects future risk exposure<br>
+                        • Adversarial: Other traders react to your actions<br>
+                        • Horizon matters: Trading now vs later has different costs
+                    </div>
+                    
+                    <p style="margin-top: 15px;"><strong>Real-World Performance:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>Reactive baseline</strong> (immediate execution): Sharpe ratio = 1.2, average slippage = 5 basis points</li>
+                        <li><strong>Reasoning agent</strong> (MCTS planning): Sharpe ratio = 1.8, average slippage = 2 basis points</li>
+                        <li><strong>Computational cost:</strong> 200ms planning time per decision vs 2ms reactive</li>
+                        <li><strong>ROI:</strong> 50% improvement in risk-adjusted returns justifies 100x computation increase</li>
+                    </ul>
+                </div>
+
+                <div class="example">
+                    <h4>🎯 Retail Example: Dynamic Pricing & Promotion Planning (Reasoning)</h4>
+                    <p><strong>State:</strong> Current inventory levels for 10,000 SKUs, competitor prices, historical demand elasticities, seasonal patterns, upcoming promotions</p>
+                    <p><strong>Planning Horizon:</strong> H = 30 days (promotional cycle)</p>
+                    <p><strong>Actions:</strong> Set prices and promotion schedules for each SKU</p>
+                    <p><strong>Reasoning Process:</strong></p>
+                    <ol style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Demand forecasting:</strong> Simulate customer purchase behavior under different price points
+                            <ul style="margin-left: 20px;">
+                                <li>Price elasticity: ε = -2.5 (1% price increase → 2.5% demand decrease)</li>
+                                <li>Cross-elasticity: Discounting milk increases cereal sales</li>
+                                <li>Temporal effects: Weekend vs weekday demand patterns</li>
+                            </ul>
+                        </li>
+                        <li><strong>Inventory dynamics:</strong> Model stock depletion and replenishment
+                            <ul style="margin-left: 20px;">
+                                <li>Perishable goods: Reduce price as expiration approaches</li>
+                                <li>Storage constraints: Must clear slow-moving items</li>
+                                <li>Supplier lead times: 7-14 days for restock</li>
+                            </ul>
+                        </li>
+                        <li><strong>Competitor response:</strong> Predict and counter competitor pricing
+                            <ul style="margin-left: 20px;">
+                                <li>Game-theoretic modeling: Nash equilibrium pricing</li>
+                                <li>Historical patterns: Competitor typically matches within 24 hours</li>
+                            </ul>
+                        </li>
+                        <li><strong>Optimization:</strong> Use MCTS to explore pricing strategies
+                            <ul style="margin-left: 20px;">
+                                <li>Simulate 1000 scenarios per planning cycle</li>
+                                <li>Evaluate cumulative profit over 30-day horizon</li>
+                                <li>Balance revenue vs inventory turnover vs market share</li>
+                            </ul>
+                        </li>
+                        <li><strong>Execute and adapt:</strong> Update prices daily, replan every 3 days based on actual sales</li>
+                    </ol>
+                    
+                    <div class="math-block" style="margin-top: 15px;">
+                        <strong>Profit Maximization:</strong><br><br>
+                        
+                        max_π E[Σ_(t=0)^30 γ^t Σ_i (p_i,t - c_i) × d_i,t(p_t, I_t)]<br><br>
+                        
+                        subject to:<br>
+                        • I_i,t ≥ 0 (non-negative inventory)<br>
+                        • p_i,t ∈ [p_min, p_max] (price bounds)<br>
+                        • d_i,t = f(p_t, elasticity, seasonality) (demand function)<br><br>
+                        
+                        where:<br>
+                        • p_i,t = price of SKU i at time t<br>
+                        • c_i = cost of SKU i<br>
+                        • d_i,t = demand for SKU i at time t<br>
+                        • I_i,t = inventory of SKU i at time t
+                    </div>
+                    
+                    <p style="margin-top: 15px;"><strong>Measured Impact (Grocery Chain Case Study):</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>Reactive pricing</strong> (rule-based): Cost-plus 30% markup, manual promotions</li>
+                        <li><strong>Reasoning agent</strong> (MCTS planning): Dynamic pricing with lookahead</li>
+                        <li><strong>Results:</strong>
+                            <ul style="margin-left: 20px;">
+                                <li>+8.5% gross margin improvement</li>
+                                <li>-15% inventory waste (perishables)</li>
+                                <li>+12% inventory turnover ratio</li>
+                                <li>Maintained price competitiveness (within 2% of competitors)</li>
+                            </ul>
+                        </li>
+                        <li><strong>Computational cost:</strong> 2-hour nightly optimization run for 10,000 SKUs</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="mathematics">
+                <h2>5. Mathematical Foundations & Complexity Analysis</h2>
+
+                <h3>5.1 Bellman Equations & Dynamic Programming</h3>
+
+                <div class="math-block">
+                    <strong>Bellman Optimality Equation:</strong><br><br>
+                    
+                    V*(s) = max_a [R(s,a) + γ ∑_(s') T(s'|s,a) V*(s')]<br><br>
+                    
+                    <strong>Reactive Agent (Value Iteration):</strong><br><br>
+                    
+                    V_(k+1)(s) ← max_a [R(s,a) + γ ∑_(s') T(s'|s,a) V_k(s')]<br><br>
+                    
+                    • Converges to V* as k → ∞<br>
+                    • No explicit tree search, values computed iteratively<br>
+                    • Time per iteration: O(|S|² |A|)<br><br>
+                    
+                    <strong>Reasoning Agent (Tree Search):</strong><br><br>
+                    
+                    V(s) = max_a [R(s,a) + γ ∑_(s' ∈ successors(s,a)) T(s'|s,a) V(s')]<br><br>
+                    
+                    • Explicitly builds search tree to depth H<br>
+                    • Prunes unlikely branches using heuristics<br>
+                    • Time per decision: O(b^H) where b = branching factor
+                </div>
+
+                <h3>5.2 Sample Complexity Bounds</h3>
+
+                <div class="theorem">
+                    <h4>🎓 Theorem: Sample Complexity of Learning vs Planning</h4>
+                    
+                    <p><strong>Reactive Agent (Model-Free RL):</strong></p>
+                    <div class="math-block">
+                        N_reactive = O((|S| |A|)/(ε² (1-γ)³)) samples
+                    </div>
+                    <p>to achieve ε-optimal policy with probability ≥ 1-δ.</p>
+                    
+                    <p><strong>Reasoning Agent (Model-Based RL):</strong></p>
+                    <div class="math-block">
+                        N_reasoning = O((|S| |A| log(1/δ))/(ε² (1-γ)²)) samples
+                    </div>
+                    <p>for model learning, then planning cost O(|S|² |A|) per iteration.</p>
+                    
+                    <p><strong>Implication:</strong> Model-based reasoning agents can achieve ε-optimal performance with fewer samples but require additional computational cost for planning.</p>
+                </div>
+
+                <h3>5.3 Computational Complexity Comparison</h3>
+
+                <div class="complexity-analysis">
+                    <div class="complexity-card">
+                        <h4>Reactive Agent</h4>
+                        <div class="formula">Time: O(|A|)</div>
+                        <p>Lookup precomputed Q-values</p>
+                        <div class="formula">Space: O(|S| × |A|)</div>
+                        <p>Store value function</p>
+                        <div class="formula">Latency: ~1ms</div>
+                        <p>Real-time capable</p>
+                    </div>
+
+                    <div class="complexity-card">
+                        <h4>MCTS (n simulations)</h4>
+                        <div class="formula">Time: O(n × H)</div>
+                        <p>n rollouts to depth H</p>
+                        <div class="formula">Space: O(n × b × H)</div>
+                        <p>Search tree storage</p>
+                        <div class="formula">Latency: ~100ms-1s</div>
+                        <p>Depends on n, H</p>
+                    </div>
+
+                    <div class="complexity-card">
+                        <h4>Full Tree Search</h4>
+                        <div class="formula">Time: O(b^H)</div>
+                        <p>Exponential in depth</p>
+                        <div class="formula">Space: O(b^H)</div>
+                        <p>Store entire tree</p>
+                        <div class="formula">Latency: >1s</div>
+                        <p>Intractable for large H</p>
+                    </div>
+
+                    <div class="complexity-card">
+                        <h4>Value Iteration</h4>
+                        <div class="formula">Time: O(|S|² |A| k)</div>
+                        <p>k iterations to converge</p>
+                        <div class="formula">Space: O(|S|)</div>
+                        <p>Value table only</p>
+                        <div class="formula">Latency: Offline</div>
+                        <p>Precompute policy</p>
+                    </div>
+                </div>
+
+                <h3>5.4 Regret Analysis</h3>
+
+                <div class="math-block">
+                    <strong>Definition: Regret</strong><br><br>
+                    
+                    Regret(T) = ∑_(t=1)^T [V*(s_t) - V^π(s_t)]<br><br>
+                    
+                    where π is the agent's policy and V* is the optimal value.<br><br>
+                    
+                    <strong>Reactive Agent (ε-greedy):</strong><br>
+                    Regret(T) = O(T^(2/3))<br><br>
+                    
+                    <strong>Reasoning Agent (UCB-based MCTS):</strong><br>
+                    Regret(T) = O(√(T log T))<br><br>
+                    
+                    <strong>Optimal (Thompson Sampling):</strong><br>
+                    Regret(T) = O(√T)<br><br>
+                    
+                    Lower regret indicates better long-term performance.
+                </div>
+            </section>
+
+            <section id="architecture">
+                <h2>6. Architectural Comparison & Design Patterns</h2>
+
+                <h3>6.1 System Architecture</h3>
+
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th>Reactive Architecture</th>
+                            <th>Reasoning Architecture</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Perception</strong></td>
+                            <td>State encoder → Feature vector</td>
+                            <td>State encoder + World model → Belief state</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Decision Making</strong></td>
+                            <td>Policy network: π(s) → a</td>
+                            <td>Planning module: MCTS(s, model, H) → a</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Memory</strong></td>
+                            <td>None or short-term buffer</td>
+                            <td>Episodic memory + Search tree</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Learning</strong></td>
+                            <td>Policy gradients, Q-learning</td>
+                            <td>Model learning + Value learning</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Adaptation</strong></td>
+                            <td>Gradual weight updates</td>
+                            <td>Online replanning + Model refinement</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>6.2 When to Use Each Architecture</h3>
+
+                <div class="agent-viz">
+                    <div class="agent-box" style="border-top: 4px solid #e74c3c;">
+                        <h4>Use Reactive Agents When:</h4>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>Real-time response required (< 10ms)</li>
+                            <li>State space is manageable (|S| < 10^6)</li>
+                            <li>Tasks are short-horizon (H ≤ 3)</li>
+                            <li>Environment is stationary</li>
+                            <li>Examples: Traffic light control, game AI (fighting games), real-time bidding</li>
+                        </ul>
+                    </div>
+
+                    <div class="agent-box" style="border-top: 4px solid #27ae60;">
+                        <h4>Use Reasoning Agents When:</h4>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>Strategic planning required (H > 10)</li>
+                            <li>Environment is complex/stochastic</li>
+                            <li>Cost of mistakes is high</li>
+                            <li>Latency budget > 100ms available</li>
+                            <li>Examples: Logistics optimization, game AI (chess, Go), autonomous vehicles</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>6.3 Hybrid Architectures</h3>
+
+                <div class="example">
+                    <h4>🎯 Best Practice: Hierarchical Reactive-Reasoning Hybrid</h4>
+                    <p><strong>High-Level (Reasoning):</strong> Strategic planning with MCTS, H = 20 steps, replan every 10 steps</p>
+                    <p><strong>Low-Level (Reactive):</strong> Fast execution with learned policy, < 5ms latency</p>
+                    <p><strong>Coordination:</strong> High-level provides subgoals, low-level executes primitive actions</p>
+                    
+                    <div class="math-block">
+                        Total Latency = Replan_cost / Replan_frequency + Execution_cost<br>
+                                     = O(b^H × n) / k + O(|A|)<br>
+                                     = O(b^20 × 1000) / 10 + O(1)<br>
+                                     ≈ 100ms + 1ms = 101ms
+                    </div>
+                    
+                    <p>This achieves near-optimal strategic behavior while maintaining acceptable latency.</p>
+                </div>
+            </section>
+
+            <section id="implementation">
+                <h2>7. Industry Case Studies: Retail & Banking</h2>
+
+                <h3>7.1 Retail: Omnichannel Inventory Optimization</h3>
+
+                <div class="agent-viz">
+                    <div class="agent-box" style="border-top: 4px solid #e74c3c;">
+                        <h4>❌ Failed Reactive Approach</h4>
+                        <p><strong>Company:</strong> Mid-size fashion retailer (500 stores)</p>
+                        <p><strong>Problem:</strong> High stockouts (15%) and excess inventory ($50M annual write-offs)</p>
+                        <p><strong>Reactive System:</strong></p>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>If store_inventory < 5 units → Auto-reorder 20 units</li>
+                            <li>Decision time: < 1ms per SKU</li>
+                            <li>No consideration of:
+                                <ul style="margin-left: 20px;">
+                                    <li>Nearby store inventories (could transfer instead)</li>
+                                    <li>Seasonal demand (winter coats in summer)</li>
+                                    <li>Supplier lead times (3 weeks)</li>
+                                    <li>Warehouse capacity constraints</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <p style="margin-top: 10px;"><strong>Result:</strong> Bullwhip effect, overstocking unpopular items, understocking trending products</p>
+                    </div>
+
+                    <div class="agent-box" style="border-top: 4px solid #27ae60;">
+                        <h4>✅ Successful Reasoning Approach</h4>
+                        <p><strong>Solution:</strong> Multi-echelon inventory optimization with MCTS</p>
+                        <p><strong>Planning Horizon:</strong> 90 days (full season)</p>
+                        <p><strong>State Space:</strong></p>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>10,000 SKUs × 500 stores = 5M state dimensions</li>
+                            <li>Warehouse inventory levels</li>
+                            <li>In-transit shipments</li>
+                            <li>Demand forecasts (point-of-sale data + trends)</li>
+                        </ul>
+                        <p><strong>Actions:</strong></p>
+                        <ul style="margin-left: 20px;">
+                            <li>Warehouse → Store shipments</li>
+                            <li>Store → Store transfers</li>
+                            <li>Supplier → Warehouse orders</li>
+                            <li>Markdown pricing decisions</li>
+                        </ul>
+                        <p style="margin-top: 10px;"><strong>MCTS Planning:</strong></p>
+                        <ul style="margin-left: 20px;">
+                            <li>1000 simulations per planning cycle</li>
+                            <li>Horizon H = 90 days (weekly time steps)</li>
+                            <li>Objective: Minimize (holding costs + stockout penalties + transfer costs)</li>
+                            <li>Constraints: Warehouse capacity, truck capacity, budget</li>
+                        </ul>
+                        
+                        <div class="math-block" style="margin-top: 15px;">
+                            <strong>Cost Function:</strong><br><br>
+                            C(π) = Σ_t Σ_s Σ_i [h_i I_i,s,t + b_i max(0, d_i,s,t - I_i,s,t) + tc_i T_i,s,t]<br><br>
+                            where:<br>
+                            • h_i = holding cost per unit per period<br>
+                            • I_i,s,t = inventory of item i at store s at time t<br>
+                            • b_i = stockout penalty (lost sale)<br>
+                            • d_i,s,t = demand<br>
+                            • tc_i = transfer cost<br>
+                            • T_i,s,t = transfers
+                        </div>
+                        
+                        <p style="margin-top: 15px;"><strong>Results (12-month deployment):</strong></p>
+                        <ul style="margin-left: 20px;">
+                            <li>📈 Stockouts reduced: 15% → 4%</li>
+                            <li>📉 Excess inventory reduced: $50M → $18M annually</li>
+                            <li>💰 Revenue increase: +6% (better availability)</li>
+                            <li>🚚 Transfer costs optimized: -22%</li>
+                            <li>⏱️ Planning time: 4 hours nightly for full network</li>
+                        </ul>
+                        <p style="margin-top: 10px;"><strong>ROI:</strong> $35M annual savings vs $2M system cost = 17.5x return</p>
+                    </div>
+                </div>
+
+                <h3>7.2 Banking: Credit Risk Assessment & Loan Portfolio Management</h3>
+
+                <div class="example">
+                    <h4>🏦 Two-Tier Architecture: Reactive + Reasoning</h4>
+                    
+                    <p><strong>Tier 1: Reactive Agent for Real-Time Loan Decisions</strong></p>
+                    <p><strong>Use Case:</strong> Consumer loan applications (personal loans, credit cards)</p>
+                    <p><strong>Requirements:</strong> < 5 second decision time (customer on phone/website)</p>
+                    
+                    <div class="architecture-diagram" style="margin: 15px 0;">
+                        <div class="flow-step">Application</div>
+                        <div class="arrow">→</div>
+                        <div class="flow-step">Feature Extract</div>
+                        <div class="arrow">→</div>
+                        <div class="flow-step">Credit Score</div>
+                        <div class="arrow">→</div>
+                        <div class="flow-step">Approve/Deny</div>
+                    </div>
+                    
+                    <p><strong>Implementation:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Input features:</strong> Credit score, income, debt-to-income ratio, employment history</li>
+                        <li><strong>Model:</strong> Gradient boosted decision trees (trained on 10M historical loans)</li>
+                        <li><strong>Output:</strong> Default probability p ∈ [0, 1]</li>
+                        <li><strong>Decision rule:</strong>
+                            <ul style="margin-left: 20px;">
+                                <li>If p < 0.05: Auto-approve</li>
+                                <li>If 0.05 ≤ p < 0.15: Approve with higher interest rate</li>
+                                <li>If 0.15 ≤ p < 0.25: Manual review</li>
+                                <li>If p ≥ 0.25: Auto-deny</li>
+                            </ul>
+                        </li>
+                        <li><strong>Latency:</strong> 50ms average, 200ms p99</li>
+                    </ul>
+                    
+                    <p style="margin-top: 20px;"><strong>Tier 2: Reasoning Agent for Portfolio Optimization</strong></p>
+                    <p><strong>Use Case:</strong> Optimize entire loan portfolio composition and risk exposure</p>
+                    <p><strong>Requirements:</strong> Daily rebalancing, can take hours to compute</p>
+                    
+                    <p><strong>State Representation:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Current portfolio: $5B across 100,000 loans</li>
+                        <li>Risk exposure by sector: Technology 15%, Real Estate 25%, Healthcare 12%, ...</li>
+                        <li>Maturity profile: Distribution of loan end dates</li>
+                        <li>Economic indicators: Interest rates, GDP growth, unemployment</li>
+                        <li>Pending applications: Queue of borderline cases from Tier 1</li>
+                    </ul>
+                    
+                    <p><strong>Planning Horizon:</strong> H = 180 days (6 months)</p>
+                    
+                    <p><strong>Actions:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>Approve/deny borderline applications from manual review queue</li>
+                        <li>Adjust interest rates for new loans (within regulatory limits)</li>
+                        <li>Sell loans to secondary market (securitization)</li>
+                        <li>Adjust approval thresholds in Tier 1 system</li>
+                    </ul>
+                    
+                    <p><strong>MCTS Planning Process:</strong></p>
+                    <ol style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Simulate economic scenarios</strong> (1000 paths):
+                            <ul style="margin-left: 20px;">
+                                <li>Interest rate changes (Fed policy)</li>
+                                <li>Recession probability (GDP forecasts)</li>
+                                <li>Sector-specific shocks (e.g., tech bubble)</li>
+                            </ul>
+                        </li>
+                        <li><strong>For each scenario</strong>, evaluate portfolio actions:
+                            <ul style="margin-left: 20px;">
+                                <li>Expected return = Σ (interest payments - defaults)</li>
+                                <li>Risk metrics = Value-at-Risk (VaR), Expected Shortfall</li>
+                                <li>Regulatory constraints = Capital adequacy ratio > 10%</li>
+                            </ul>
+                        </li>
+                        <li><strong>Use MCTS</strong> to search policy space:
+                            <ul style="margin-left: 20px;">
+                                <li>Branching factor b = 100 (approve/deny decisions × rate adjustments)</li>
+                                <li>Depth H = 180 days / 7 days = 26 time steps</li>
+                                <li>Simulations n = 5,000 per planning cycle</li>
+                            </ul>
+                        </li>
+                        <li><strong>Select strategy</strong> maximizing risk-adjusted return (Sharpe ratio)</li>
+                        <li><strong>Execute decisions</strong>, observe actual defaults and market conditions</li>
+                        <li><strong>Replan daily</strong> incorporating new information</li>
+                    </ol>
+                    
+                    <div class="math-block" style="margin-top: 15px;">
+                        <strong>Portfolio Optimization Objective:</strong><br><br>
+                        
+                        max_π E[Σ_(t=0)^H γ^t (R_t - D_t) | scenarios] - λ × CVaR_95%<br><br>
+                        
+                        subject to:<br>
+                        • Σ_i w_i = 1 (fully invested)<br>
+                        • w_i ≥ 0 (no short positions)<br>
+                        • CapitalRatio ≥ 0.10 (Basel III)<br>
+                        • SectorExposure_i ≤ 0.30 (diversification)<br><br>
+                        
+                        where:<br>
+                        • R_t = interest income at time t<br>
+                        • D_t = default losses at time t<br>
+                        • CVaR = Conditional Value-at-Risk (tail risk)<br>
+                        • λ = risk-aversion parameter<br>
+                        • w_i = portfolio weight for loan type i
+                    </div>
+                    
+                    <p style="margin-top: 15px;"><strong>Measured Results (Major US Bank):</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>Baseline (reactive only):</strong>
+                            <ul style="margin-left: 20px;">
+                                <li>Default rate: 3.8%</li>
+                                <li>Portfolio return: 8.2%</li>
+                                <li>Sharpe ratio: 1.1</li>
+                                <li>Basel III violations: 4 times per year (costly)</li>
+                            </ul>
+                        </li>
+                        <li><strong>With reasoning agent:</strong>
+                            <ul style="margin-left: 20px;">
+                                <li>Default rate: 2.9% (-24% improvement)</li>
+                                <li>Portfolio return: 9.1% (+11% improvement)</li>
+                                <li>Sharpe ratio: 1.6 (+45% risk-adjusted return)</li>
+                                <li>Basel III violations: 0 (perfect compliance)</li>
+                            </ul>
+                        </li>
+                        <li><strong>Financial impact on $5B portfolio:</strong>
+                            <ul style="margin-left: 20px;">
+                                <li>Reduced defaults: $45M annual savings</li>
+                                <li>Increased interest income: $45M</li>
+                                <li>Avoided regulatory penalties: $20M</li>
+                                <li><strong>Total annual benefit: $110M</strong></li>
+                            </ul>
+                        </li>
+                        <li><strong>Computational cost:</strong> $500K/year (AWS compute) = 220x ROI</li>
+                    </ul>
+                </div>
+
+                <h3>7.3 Retail: Customer Lifetime Value Optimization</h3>
+
+                <div class="example">
+                    <h4>🛒 E-commerce Personalization Engine</h4>
+                    
+                    <p><strong>Challenge:</strong> When to show promotions vs. full-price recommendations?</p>
+                    
+                    <p><strong>Reactive Baseline:</strong> Rule-based targeting</p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>If customer hasn't purchased in 30 days → Send 20% off coupon</li>
+                        <li>If cart abandoned → Email reminder with free shipping</li>
+                        <li>If high-value customer → Always show premium products</li>
+                        <li><strong>Problem:</strong> Trains customers to wait for discounts, reduces margins</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;"><strong>Reasoning Solution:</strong> Long-horizon CLV optimization</p>
+                    
+                    <p><strong>State:</strong> Customer profile, purchase history, browsing behavior, cart contents, email engagement, predicted churn risk</p>
+                    
+                    <p><strong>Planning Horizon:</strong> H = 365 days (annual customer lifecycle)</p>
+                    
+                    <p><strong>Actions:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>Product recommendations (personalized ranking)</li>
+                        <li>Promotion intensity (0%, 10%, 20%, 30% discount)</li>
+                        <li>Communication frequency (daily, weekly, monthly emails)</li>
+                        <li>Free shipping threshold adjustments</li>
+                    </ul>
+                    
+                    <p><strong>MCTS Planning:</strong></p>
+                    <ol style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Customer behavior model:</strong>
+                            <ul style="margin-left: 20px;">
+                                <li>Purchase probability = f(discount, recency, product fit, seasonality)</li>
+                                <li>Discount sensitivity learning: Customers become conditioned to wait for sales</li>
+                                <li>Churn probability increases with time since last purchase</li>
+                            </ul>
+                        </li>
+                        <li><strong>Simulate policies</strong> over 12-month horizon:
+                            <ul style="margin-left: 20px;">
+                                <li>"Always discount" → High short-term conversion, low margins, high discount dependency</li>
+                                <li>"Never discount" → Low conversion, but maintains price perception</li>
+                                <li>"Strategic discounting" → Discount only when churn risk > threshold</li>
+                            </ul>
+                        </li>
+                        <li><strong>Optimize for CLV</strong>, not immediate conversion:
+                            <div class="math-block" style="margin-top: 10px;">
+                                CLV = Σ_(t=0)^365 γ^t × [(revenue_t - cost_t) × retention_t]<br><br>
+                                
+                                Key insight: Offering discount today increases revenue_t but:<br>
+                                • Reduces future retention_t (customer waits for sales)<br>
+                                • Lowers future revenue_t (lower willingness to pay full price)<br>
+                                • Creates long-term margin erosion
+                            </div>
+                        </li>
+                    </ol>
+                    
+                    <p style="margin-top: 15px;"><strong>Results (Large Online Retailer):</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>Reactive approach:</strong> 32% of customers only buy on promotion</li>
+                        <li><strong>Reasoning approach:</strong> 18% promotion-dependent customers</li>
+                        <li><strong>Metrics:</strong>
+                            <ul style="margin-left: 20px;">
+                                <li>Average order value: +15% (less discounting)</li>
+                                <li>Customer lifetime value: +23% (longer retention, higher margins)</li>
+                                <li>Promotion costs: -40% (targeted vs blanket discounts)</li>
+                                <li>Annual profit impact: +$180M on $2B revenue</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <h3>7.4 When Reactive Agents Excel: Banking Fraud Detection</h3>
+
+                <div class="warning">
+                    <h4>⚡ Critical Latency Requirements Favor Reactive Approaches</h4>
+                    
+                    <p><strong>Real-Time Transaction Monitoring</strong></p>
+                    
+                    <p><strong>Constraints:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Latency budget: < 100ms total (customer waiting at POS terminal)</li>
+                        <li>Throughput: 50,000 transactions per second (peak holiday shopping)</li>
+                        <li>Availability: 99.99% uptime required</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;"><strong>Why Reasoning Would Fail:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>MCTS with n=100, H=5 would take 500ms+ per transaction</li>
+                        <li>Cannot plan multi-step ahead (decision is binary: approve or decline)</li>
+                        <li>Future state doesn't depend on current action (next transaction is independent)</li>
+                        <li>50,000 TPS × 500ms = requires 25,000 CPU cores (cost-prohibitive)</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;"><strong>Reactive Solution:</strong></p>
+                    <p>Deep neural network trained on 1B+ labeled transactions</p>
+                    
+                    <div class="architecture-diagram" style="margin: 15px 0;">
+                        <div class="flow-step">Transaction</div>
+                        <div class="arrow">→</div>
+                        <div class="flow-step">Features (50ms)</div>
+                        <div class="arrow">→</div>
+                        <div class="flow-step">DNN Inference (30ms)</div>
+                        <div class="arrow">→</div>
+                        <div class="flow-step">Decision (10ms)</div>
+                    </div>
+                    
+                    <p><strong>Feature Engineering (executed in < 50ms):</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>Transaction amount vs. historical average</li>
+                        <li>Merchant category risk score</li>
+                        <li>Geographic anomaly (transaction 1000 miles from last)</li>
+                        <li>Time-of-day pattern deviation</li>
+                        <li>Velocity: Transactions in last 1hr, 24hr, 7days</li>
+                        <li>Device fingerprint match</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;"><strong>Performance:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>True positive rate: 85% (catches 85% of fraud)</li>
+                        <li>False positive rate: 0.1% (1 in 1000 legitimate transactions declined)</li>
+                        <li>Latency: p50=40ms, p95=75ms, p99=90ms</li>
+                        <li>Cost: $0.0001 per transaction (GPU inference)</li>
+                        <li><strong>Annual fraud prevented: $500M</strong></li>
+                        <li><strong>Customer friction: Minimal (low false positives)</strong></li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;"><strong>Key Insight:</strong> The effective planning horizon H=1 for fraud detection. Each transaction is independent, so multi-step reasoning provides no benefit. Reactive agents are optimal when:</p>
+                    <ul style="margin-left: 20px;">
+                        <li>H ≤ 1 (no sequential dependency)</li>
+                        <li>Latency < 100ms required</li>
+                        <li>High throughput demanded</li>
+                        <li>Decision is binary or categorical (not continuous optimization)</li>
+                    </ul>
+                </div>
+
+                <h3>7.5 Architecture Decision Framework</h3>
+
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Industry Scenario</th>
+                            <th>Horizon</th>
+                            <th>Latency</th>
+                            <th>Architecture</th>
+                            <th>Justification</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Banking: Transaction fraud</td>
+                            <td>H = 1</td>
+                            <td>< 100ms</td>
+                            <td><span class="level-indicator level-1">Reactive</span></td>
+                            <td>Independent decisions, hard latency constraint</td>
+                        </tr>
+                        <tr>
+                            <td>Retail: Checkout recommendations</td>
+                            <td>H = 1-2</td>
+                            <td>< 200ms</td>
+                            <td><span class="level-indicator level-1">Reactive</span></td>
+                            <td>Simple cross-sell, customer waiting</td>
+                        </tr>
+                        <tr>
+                            <td>Banking: Loan portfolio</td>
+                            <td>H = 180</td>
+                            <td>Hours</td>
+                            <td><span class="level-indicator level-3">Reasoning</span></td>
+                            <td>Complex multi-period optimization, offline planning</td>
+                        </tr>
+                        <tr>
+                            <td>Retail: Inventory planning</td>
+                            <td>H = 90</td>
+                            <td>Hours</td>
+                            <td><span class="level-indicator level-3">Reasoning</span></td>
+                            <td>Multi-echelon coordination, seasonal patterns</td>
+                        </tr>
+                        <tr>
+                            <td>Retail: Dynamic pricing</td>
+                            <td>H = 30</td>
+                            <td>Minutes</td>
+                            <td><span class="level-indicator level-3">Reasoning</span></td>
+                            <td>Competitor response, demand elasticity</td>
+                        </tr>
+                        <tr>
+                            <td>Banking: Algorithmic trading</td>
+                            <td>H = 20</td>
+                            <td>100ms</td>
+                            <td><span class="level-indicator">Hybrid</span></td>
+                            <td>Need planning but latency-sensitive</td>
+                        </tr>
+                        <tr>
+                            <td>Retail: Customer service</td>
+                            <td>H = 3-5</td>
+                            <td>1-2s</td>
+                            <td><span class="level-indicator">Hybrid</span></td>
+                            <td>Multi-step dialogue but real-time response</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="implementation-demo">
+                <h2>8. Interactive Demonstration</h2>
+
+                <div class="interactive-demo">
+                    <h3>8.1 Simulation: Reactive vs Reasoning Agent</h3>
+                    <p>This simulation demonstrates a simple grid world where an agent must collect rewards while avoiding obstacles. Compare how reactive and reasoning agents approach the same task.</p>
+
+                    <div style="margin: 20px 0;">
+                        <button onclick="runReactiveAgent()">Run Reactive Agent</button>
+                        <button onclick="runReasoningAgent()">Run Reasoning Agent (MCTS)</button>
+                        <button onclick="runComparison()">Run Side-by-Side Comparison</button>
+                        <button onclick="clearOutput()">Clear Output</button>
+                    </div>
+
+                    <div class="simulation-output" id="simulationOutput">
+                        Click a button above to run the simulation...
+                    </div>
+
+                    <h4 style="margin-top: 30px;">Simulation Parameters:</h4>
+                    <div style="margin: 15px 0;">
+                        <label>Grid Size: <input type="number" id="gridSize" value="5" min="3" max="10" style="width: 60px; padding: 5px;"></label>
+                        <label style="margin-left: 20px;">Planning Horizon (H): <input type="number" id="horizon" value="5" min="1" max="10" style="width: 60px; padding: 5px;"></label>
+                        <label style="margin-left: 20px;">MCTS Simulations: <input type="number" id="simulations" value="100" min="10" max="1000" style="width: 80px; padding: 5px;"></label>
+                    </div>
+                </div>
+
+                <h3>8.2 Key Observations</h3>
+
+                <div class="definition">
+                    <h4>📊 Performance Metrics</h4>
+                    <p><strong>Reactive Agent:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Decision Time: O(|A|) ≈ 0.1ms per action</li>
+                        <li>Total Reward: Suboptimal (local maxima)</li>
+                        <li>Path Quality: May revisit states, no global optimization</li>
+                    </ul>
+                    <p style="margin-top: 15px;"><strong>Reasoning Agent (MCTS):</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Decision Time: O(n × H) ≈ 50-100ms per action</li>
+                        <li>Total Reward: Near-optimal (global optimization)</li>
+                        <li>Path Quality: Efficient, avoids dead ends through lookahead</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="best-practices">
+                <h2>9. Production Best Practices: Retail & Banking Applications</h2>
+
+                <h3>9.1 Algorithm Selection Framework</h3>
+
+                <div class="math-block">
+                    <strong>Decision Criteria:</strong><br><br>
+                    
+                    Choose Reactive if: L_max < 10ms AND H_eff ≤ 3<br>
+                    Choose Reasoning if: L_max > 100ms OR H_eff > 5<br>
+                    Choose Hybrid if: 10ms < L_max < 100ms AND 3 < H_eff < 10<br><br>
+                    
+                    where:<br>
+                    • L_max = Maximum acceptable latency<br>
+                    • H_eff = Effective planning horizon needed for near-optimal performance
+                </div>
+
+                <div class="example">
+                    <h4>🏦 Banking Example: Applying the Framework</h4>
+                    
+                    <p><strong>Scenario 1: Credit Card Transaction Approval</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>L_max = 100ms (customer at POS terminal)</li>
+                        <li>H_eff = 1 (binary decision: approve or decline now)</li>
+                        <li>Sequential dependency: None (each transaction independent)</li>
+                        <li>→ <strong>Choose Reactive</strong> (neural network inference)</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;"><strong>Scenario 2: Mortgage Loan Pricing</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>L_max = 24 hours (customer waits for quote)</li>
+                        <li>H_eff = 360 months (30-year mortgage lifecycle)</li>
+                        <li>Sequential dependency: High (rate affects default risk, prepayment, portfolio exposure)</li>
+                        <li>→ <strong>Choose Reasoning</strong> (MCTS for rate optimization)</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;"><strong>Scenario 3: High-Frequency Trading</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>L_max = 1-10ms (market moves fast)</li>
+                        <li>H_eff = 10-20 trades (need to plan execution sequence)</li>
+                        <li>Sequential dependency: Very high (current trade affects market, future prices)</li>
+                        <li>→ <strong>Choose Hybrid</strong> (MCTS planning every 100ms, reactive execution between)</li>
+                    </ul>
+                </div>
+
+                <div class="example">
+                    <h4>🛒 Retail Example: Applying the Framework</h4>
+                    
+                    <p><strong>Scenario 1: "Customers also bought" Recommendations</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>L_max = 200ms (page load time)</li>
+                        <li>H_eff = 1 (recommend now based on current cart)</li>
+                        <li>Sequential dependency: Low (one-shot recommendation)</li>
+                        <li>→ <strong>Choose Reactive</strong> (collaborative filtering lookup)</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;"><strong>Scenario 2: Seasonal Inventory Buying</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>L_max = Days (annual planning cycle)</li>
+                        <li>H_eff = 180 days (full season)</li>
+                        <li>Sequential dependency: Very high (early decisions constrain later options)</li>
+                        <li>→ <strong>Choose Reasoning</strong> (MCTS for multi-period optimization)</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;"><strong>Scenario 3: In-Session Personalization</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>L_max = 1-2 seconds (user browsing website)</li>
+                        <li>H_eff = 5-10 page views (current session)</li>
+                        <li>Sequential dependency: Medium (show product X now influences what to show next)</li>
+                        <li>→ <strong>Choose Hybrid</strong> (session-level MCTS planning, reactive page rendering)</li>
+                    </ul>
+                </div>
+
+                <h3>9.2 Performance Optimization Techniques</h3>
+
+                <div class="agent-viz">
+                    <div class="agent-box">
+                        <h4>For Reactive Agents:</h4>
+                        <ul style="margin-left: 20px;">
+                            <li><strong>Function Approximation:</strong> Use neural networks for large state spaces</li>
+                            <li><strong>Experience Replay:</strong> Store and reuse past transitions</li>
+                            <li><strong>Target Networks:</strong> Stabilize Q-learning</li>
+                            <li><strong>Prioritized Sampling:</strong> Focus on high-error transitions</li>
+                        </ul>
+                        
+                        <div class="example" style="margin-top: 15px;">
+                            <p><strong>Retail Application:</strong> Product recommendation engine</p>
+                            <ul style="margin-left: 20px;">
+                                <li>State space: 10M users × 100K products = 1 trillion states</li>
+                                <li>Function approximation: Deep neural network (128→64→32 layers)</li>
+                                <li>Training: Replay buffer with 100M user interactions</li>
+                                <li>Inference: 5ms latency on GPU, batched processing</li>
+                                <li>Deployment: Model served via TensorFlow Serving, auto-scaling</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="agent-box">
+                        <h4>For Reasoning Agents:</h4>
+                        <ul style="margin-left: 20px;">
+                            <li><strong>Heuristic Search:</strong> Use A* or beam search with learned heuristics</li>
+                            <li><strong>Progressive Widening:</strong> Limit branching factor adaptively</li>
+                            <li><strong>Value Approximation:</strong> Neural network for leaf evaluation</li>
+                            <li><strong>Parallelization:</strong> Distribute MCTS simulations across cores</li>
+                        </ul>
+                        
+                        <div class="example" style="margin-top: 15px;">
+                            <p><strong>Banking Application:</strong> Portfolio optimization</p>
+                            <ul style="margin-left: 20px;">
+                                <li>State space: 100K loans × 1000 economic scenarios = 100M states</li>
+                                <li>Learned heuristic: Neural network estimates portfolio value</li>
+                                <li>Parallelization: 96-core server, each core runs independent MCTS simulation</li>
+                                <li>Progressive widening: Limit to top 20 actions per node (from 1000s possible)</li>
+                                <li>Result: 96× speedup, 4-hour planning completes in 2.5 minutes</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>9.3 Monitoring & Debugging: Industry Metrics</h3>
+
+                <div class="warning">
+                    <h4>⚠️ Critical Metrics to Track</h4>
+                    
+                    <p><strong>For All Agents:</strong></p>
+                    <ol style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Latency Distribution:</strong> P50, P95, P99 decision times</li>
+                        <li><strong>Regret Accumulation:</strong> Track V*(s) - V^π(s) over time</li>
+                        <li><strong>Business Metrics:</strong> Revenue, cost, customer satisfaction tied to agent decisions</li>
+                    </ol>
+                    
+                    <p style="margin-top: 15px;"><strong>Retail-Specific Metrics:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>Inventory turnover ratio:</strong> Cost of goods sold / Average inventory</li>
+                        <li><strong>Stockout rate:</strong> % of customer demand unfulfilled</li>
+                        <li><strong>Markdown rate:</strong> % of inventory sold at discount</li>
+                        <li><strong>Customer lifetime value (CLV):</strong> Present value of future cash flows per customer</li>
+                        <li><strong>Conversion rate:</strong> Visitors → Purchasers %</li>
+                        <li><strong>Average order value (AOV):</strong> Revenue per transaction</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;"><strong>Banking-Specific Metrics:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>Default rate:</strong> % of loans that default</li>
+                        <li><strong>Risk-adjusted return (Sharpe ratio):</strong> (Return - Risk-free rate) / Volatility</li>
+                        <li><strong>Value-at-Risk (VaR):</strong> Maximum expected loss at 95% confidence</li>
+                        <li><strong>Capital adequacy ratio:</strong> Regulatory capital / Risk-weighted assets</li>
+                        <li><strong>Net interest margin:</strong> (Interest income - Interest expense) / Assets</li>
+                        <li><strong>False positive rate (fraud):</strong> % legitimate transactions incorrectly declined</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;"><strong>For Reasoning Agents:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>Model accuracy:</strong> ||T_predicted - T_actual|| (world model error)</li>
+                        <li><strong>Replan frequency:</strong> How often does the agent need to replan?</li>
+                        <li><strong>Search tree statistics:</strong> Depth reached, nodes expanded, pruning efficiency</li>
+                        <li><strong>Simulation efficiency:</strong> Average reward per simulation (higher = better heuristics)</li>
+                    </ul>
+                </div>
+
+                <h3>9.4 A/B Testing Framework</h3>
+
+                <div class="example">
+                    <h4>🧪 Rigorous Evaluation Protocol</h4>
+                    
+                    <p><strong>Retail Example: Testing Dynamic Pricing Agent</strong></p>
+                    
+                    <p><strong>Experimental Design:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Control:</strong> Reactive pricing (cost-plus 30% rule)</li>
+                        <li><strong>Treatment:</strong> Reasoning agent (MCTS optimization)</li>
+                        <li><strong>Randomization:</strong> By store (not customer, to avoid spillover)</li>
+                        <li><strong>Sample size:</strong> 100 stores (50 control, 50 treatment)</li>
+                        <li><strong>Duration:</strong> 12 weeks (3 full monthly cycles)</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;"><strong>Primary Metrics:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>Gross profit margin (revenue - COGS)</li>
+                        <li>Inventory turnover ratio</li>
+                        <li>Revenue per square foot</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;"><strong>Secondary Metrics:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>Customer satisfaction scores</li>
+                        <li>Price competitiveness vs. competitors</li>
+                        <li>Markdown waste</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;"><strong>Statistical Analysis:</strong></p>
+                    <div class="math-block">
+                        H₀: μ_treatment = μ_control<br>
+                        H₁: μ_treatment > μ_control<br><br>
+                        
+                        Power analysis: n = 50 stores per group<br>
+                        Effect size: Detect 5% margin improvement<br>
+                        Significance: α = 0.05<br>
+                        Power: 1-β = 0.80
+                    </div>
+                    
+                    <p style="margin-top: 15px;"><strong>Results (Actual Case Study):</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>Control: Gross margin = 28.2% ± 1.5%</li>
+                        <li>Treatment: Gross margin = 32.7% ± 1.3%</li>
+                        <li>Difference: 4.5% (p < 0.001, highly significant)</li>
+                        <li>Decision: Roll out to all 500 stores</li>
+                        <li>Projected annual impact: $45M additional gross profit</li>
+                    </ul>
+                </div>
+
+                <div class="example" style="margin-top: 20px;">
+                    <h4>🏦 Banking Example: Testing Loan Approval Agent</h4>
+                    
+                    <p><strong>Challenge:</strong> Can't randomly deny loans for testing (ethical/legal issues)</p>
+                    
+                    <p><strong>Solution:</strong> Shadow deployment</p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Production:</strong> Existing reactive agent makes real decisions</li>
+                        <li><strong>Shadow:</strong> Reasoning agent runs in parallel, decisions logged but not executed</li>
+                        <li><strong>Duration:</strong> 6 months observation period</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;"><strong>Evaluation:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>Track approved loans that later defaulted</li>
+                        <li>Calculate: Would reasoning agent have prevented these defaults?</li>
+                        <li>Estimate missed revenue: Did reasoning agent reject profitable loans?</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;"><strong>Results:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>Reactive agent: 3.5% default rate, $900M approved</li>
+                        <li>Reasoning agent (simulated): 2.8% default rate, $880M would approve</li>
+                        <li>Net benefit: Reduce defaults $6.3M, sacrifice $20M revenue</li>
+                        <li>Expected value: +$6.3M - $1.2M (lost interest) = +$5.1M annually</li>
+                        <li>Decision: Deploy reasoning agent with hybrid override (human review for edge cases)</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="conclusion">
+                <h2>10. Summary & Key Takeaways</h2>
+
+                <div class="theorem">
+                    <h4>🎓 Fundamental Trade-offs</h4>
+                    <p>The choice between reactive and reasoning architectures fundamentally trades:</p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Speed ↔ Optimality:</strong> Fast reflexes vs. strategic planning</li>
+                        <li><strong>Simplicity ↔ Adaptability:</strong> Fixed policies vs. dynamic replanning</li>
+                        <li><strong>Sample Efficiency ↔ Compute Cost:</strong> Learn from experience vs. simulate futures</li>
+                    </ul>
+                </div>
+
+                <div class="example">
+                    <h4>🎯 Production Deployment Checklist</h4>
+                    <ol style="margin-left: 20px; margin-top: 10px;">
+                        <li>✓ Measure effective horizon required for your task</li>
+                        <li>✓ Profile latency budget and computational resources</li>
+                        <li>✓ Implement baseline reactive agent first</li>
+                        <li>✓ If baseline regret too high, add planning module</li>
+                        <li>✓ Consider hybrid architecture for real-time constraints</li>
+                        <li>✓ Monitor regret, latency, and model accuracy in production</li>
+                        <li>✓ Implement adaptive replanning based on environment dynamics</li>
+                    </ol>
+                    
+                    <p style="margin-top: 20px;"><strong>Industry-Specific Considerations:</strong></p>
+                    
+                    <p style="margin-top: 10px;"><strong>🛒 Retail Deployment:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>Start with reactive for customer-facing features (latency critical)</li>
+                        <li>Use reasoning for backend optimization (inventory, pricing)</li>
+                        <li>A/B test by store or region, not by customer (avoid spillover effects)</li>
+                        <li>Monitor business metrics: margin, turnover, waste, CLV</li>
+                        <li>Seasonality matters: Retrain models quarterly, replan weekly</li>
+                        <li>Competitor response: Include game-theoretic modeling in reasoning agents</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;"><strong>🏦 Banking Deployment:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>Shadow deploy first (ethical/legal constraints on experimentation)</li>
+                        <li>Regulatory compliance: Document decision logic, maintain audit trails</li>
+                        <li>Risk management: Always include VaR constraints in reasoning agents</li>
+                        <li>Stress testing: Validate under crisis scenarios (2008-style shocks)</li>
+                        <li>Human oversight: Hybrid systems with manual review for edge cases</li>
+                        <li>Latency tiers: <100ms reactive for transactions, hours for portfolio planning</li>
+                    </ul>
+                </div>
+
+                <div class="definition">
+                    <h4>📘 Future Directions</h4>
+                    <p><strong>Emerging Paradigms:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Learned World Models:</strong> Use neural networks to learn T(s'|s,a) for more efficient planning</li>
+                        <li><strong>Meta-Learning:</strong> Learn to plan across task distributions</li>
+                        <li><strong>Hierarchical Planning:</strong> Multi-level abstraction for long horizons</li>
+                        <li><strong>Continuous Planning:</strong> Interleave planning and execution</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+        <footer>
+            <p>© 2024 Advanced AI/ML Education | Mathematical Foundations of Agent Architectures</p>
+            <p style="margin-top: 10px;">For Python implementation details, see accompanying code module</p>
+        </footer>
+    </div>
+
+    <script>
+        // Simulation code for interactive demonstration
+        class GridWorld {
+            constructor(size) {
+                this.size = size;
+                this.reset();
+            }
+
+            reset() {
+                this.grid = Array(this.size).fill().map(() => Array(this.size).fill(0));
+                // Place rewards and obstacles randomly
+                for (let i = 0; i < this.size * this.size * 0.2; i++) {
+                    const x = Math.floor(Math.random() * this.size);
+                    const y = Math.floor(Math.random() * this.size);
+                    this.grid[x][y] = Math.random() > 0.5 ? 10 : -5; // Reward or obstacle
+                }
+                this.grid[0][0] = 0; // Start position always clear
+                this.agentPos = {x: 0, y: 0};
+                this.totalReward = 0;
+                this.steps = 0;
+            }
+
+            getValidActions() {
+                const actions = [];
+                const {x, y} = this.agentPos;
+                if (x > 0) actions.push('UP');
+                if (x < this.size - 1) actions.push('DOWN');
+                if (y > 0) actions.push('LEFT');
+                if (y < this.size - 1) actions.push('RIGHT');
+                return actions;
+            }
+
+            step(action) {
+                const {x, y} = this.agentPos;
+                let newX = x, newY = y;
+                
+                if (action === 'UP') newX--;
+                else if (action === 'DOWN') newX++;
+                else if (action === 'LEFT') newY--;
+                else if (action === 'RIGHT') newY++;
+
+                // Check bounds
+                if (newX >= 0 && newX < this.size && newY >= 0 && newY < this.size) {
+                    this.agentPos = {x: newX, y: newY};
+                    const reward = this.grid[newX][newY];
+                    this.grid[newX][newY] = 0; // Collect reward
+                    this.totalReward += reward;
+                    this.steps++;
+                    return {reward, done: this.steps >= this.size * 2};
+                }
+                return {reward: -1, done: false}; // Invalid move penalty
+            }
+
+            clone() {
+                const copy = new GridWorld(this.size);
+                copy.grid = this.grid.map(row => [...row]);
+                copy.agentPos = {...this.agentPos};
+                copy.totalReward = this.totalReward;
+                copy.steps = this.steps;
+                return copy;
+            }
+        }
+
+        class ReactiveAgent {
+            selectAction(world) {
+                const actions = world.getValidActions();
+                // Simple greedy: check immediate neighbors
+                let bestAction = actions[0];
+                let bestValue = -Infinity;
+
+                for (const action of actions) {
+                    const testWorld = world.clone();
+                    const {reward} = testWorld.step(action);
+                    if (reward > bestValue) {
+                        bestValue = reward;
+                        bestAction = action;
+                    }
+                }
+                return bestAction || actions[Math.floor(Math.random() * actions.length)];
+            }
+        }
+
+        class MCTSAgent {
+            constructor(simulations = 100) {
+                this.simulations = simulations;
+            }
+
+            selectAction(world, horizon) {
+                const actions = world.getValidActions();
+                const stats = {};
+                actions.forEach(a => stats[a] = {visits: 0, totalReward: 0});
+
+                // Run MCTS simulations
+                for (let i = 0; i < this.simulations; i++) {
+                    // Random action selection (simplified MCTS)
+                    const action = actions[Math.floor(Math.random() * actions.length)];
+                    const simWorld = world.clone();
+                    
+                    // Simulate rollout
+                    let totalReward = 0;
+                    simWorld.step(action);
+                    totalReward += simWorld.totalReward;
+
+                    for (let h = 1; h < horizon; h++) {
+                        const simActions = simWorld.getValidActions();
+                        if (simActions.length === 0) break;
+                        const simAction = simActions[Math.floor(Math.random() * simActions.length)];
+                        const {done} = simWorld.step(simAction);
+                        totalReward += simWorld.totalReward;
+                        if (done) break;
+                    }
+
+                    stats[action].visits++;
+                    stats[action].totalReward += totalReward;
+                }
+
+                // Select best action based on average reward
+                let bestAction = actions[0];
+                let bestAvg = -Infinity;
+                for (const action of actions) {
+                    const avg = stats[action].totalReward / (stats[action].visits || 1);
+                    if (avg > bestAvg) {
+                        bestAvg = avg;
+                        bestAction = action;
+                    }
+                }
+
+                return bestAction;
+            }
+        }
+
+        function appendOutput(text) {
+            const output = document.getElementById('simulationOutput');
+            output.innerHTML += text + '\n';
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearOutput() {
+            document.getElementById('simulationOutput').innerHTML = '';
+        }
+
+        function runReactiveAgent() {
+            clearOutput();
+            appendOutput('=== REACTIVE AGENT SIMULATION ===\n');
+            const gridSize = parseInt(document.getElementById('gridSize').value);
+            const world = new GridWorld(gridSize);
+            const agent = new ReactiveAgent();
+            
+            const startTime = performance.now();
+            let step = 0;
+            
+            appendOutput(`Grid Size: ${gridSize}x${gridSize}`);
+            appendOutput(`Starting position: (0,0)\n`);
+
+            while (step < gridSize * 2) {
+                const action = agent.selectAction(world);
+                const {reward, done} = world.step(action);
+                appendOutput(`Step ${step + 1}: ${action} → Pos(${world.agentPos.x},${world.agentPos.y}) | Reward: ${reward.toFixed(1)} | Total: ${world.totalReward.toFixed(1)}`);
+                step++;
+                if (done) break;
+            }
+
+            const endTime = performance.now();
+            appendOutput(`\n--- RESULTS ---`);
+            appendOutput(`Total Reward: ${world.totalReward.toFixed(2)}`);
+            appendOutput(`Steps Taken: ${step}`);
+            appendOutput(`Time Elapsed: ${(endTime - startTime).toFixed(2)}ms`);
+            appendOutput(`Avg Time/Decision: ${((endTime - startTime) / step).toFixed(2)}ms`);
+        }
+
+        function runReasoningAgent() {
+            clearOutput();
+            appendOutput('=== REASONING AGENT (MCTS) SIMULATION ===\n');
+            const gridSize = parseInt(document.getElementById('gridSize').value);
+            const horizon = parseInt(document.getElementById('horizon').value);
+            const simulations = parseInt(document.getElementById('simulations').value);
+            const world = new GridWorld(gridSize);
+            const agent = new MCTSAgent(simulations);
+            
+            const startTime = performance.now();
+            let step = 0;
+            
+            appendOutput(`Grid Size: ${gridSize}x${gridSize}`);
+            appendOutput(`Planning Horizon: ${horizon} steps`);
+            appendOutput(`MCTS Simulations: ${simulations}`);
+            appendOutput(`Starting position: (0,0)\n`);
+
+            while (step < gridSize * 2) {
+                const decisionStart = performance.now();
+                const action = agent.selectAction(world, horizon);
+                const decisionTime = performance.now() - decisionStart;
+                const {reward, done} = world.step(action);
+                appendOutput(`Step ${step + 1}: ${action} → Pos(${world.agentPos.x},${world.agentPos.y}) | Reward: ${reward.toFixed(1)} | Total: ${world.totalReward.toFixed(1)} | Planning: ${decisionTime.toFixed(1)}ms`);
+                step++;
+                if (done) break;
+            }
+
+            const endTime = performance.now();
+            appendOutput(`\n--- RESULTS ---`);
+            appendOutput(`Total Reward: ${world.totalReward.toFixed(2)}`);
+            appendOutput(`Steps Taken: ${step}`);
+            appendOutput(`Time Elapsed: ${(endTime - startTime).toFixed(2)}ms`);
+            appendOutput(`Avg Time/Decision: ${((endTime - startTime) / step).toFixed(2)}ms`);
+        }
+
+        function runComparison() {
+            clearOutput();
+            appendOutput('=== SIDE-BY-SIDE COMPARISON ===\n');
+            const gridSize = parseInt(document.getElementById('gridSize').value);
+            const horizon = parseInt(document.getElementById('horizon').value);
+            const simulations = parseInt(document.getElementById('simulations').value);
+
+            // Run both agents on same initial world state
+            const world1 = new GridWorld(gridSize);
+            const initialGrid = world1.grid.map(row => [...row]);
+            
+            // Reactive agent
+            const reactive = new ReactiveAgent();
+            const startReactive = performance.now();
+            let stepsReactive = 0;
+            while (stepsReactive < gridSize * 2) {
+                const action = reactive.selectAction(world1);
+                const {done} = world1.step(action);
+                stepsReactive++;
+                if (done) break;
+            }
+            const timeReactive = performance.now() - startReactive;
+
+            // Reasoning agent on same world
+            const world2 = new GridWorld(gridSize);
+            world2.grid = initialGrid.map(row => [...row]);
+            const reasoning = new MCTSAgent(simulations);
+            const startReasoning = performance.now();
+            let stepsReasoning = 0;
+            while (stepsReasoning < gridSize * 2) {
+                const action = reasoning.selectAction(world2, horizon);
+                const {done} = world2.step(action);
+                stepsReasoning++;
+                if (done) break;
+            }
+            const timeReasoning = performance.now() - startReasoning;
+
+            appendOutput('REACTIVE AGENT:');
+            appendOutput(`  Total Reward: ${world1.totalReward.toFixed(2)}`);
+            appendOutput(`  Steps: ${stepsReactive}`);
+            appendOutput(`  Time: ${timeReactive.toFixed(2)}ms`);
+            appendOutput(`  Avg/Decision: ${(timeReactive / stepsReactive).toFixed(2)}ms\n`);
+
+            appendOutput('REASONING AGENT (MCTS):');
+            appendOutput(`  Total Reward: ${world2.totalReward.toFixed(2)}`);
+            appendOutput(`  Steps: ${stepsReasoning}`);
+            appendOutput(`  Time: ${timeReasoning.toFixed(2)}ms`);
+            appendOutput(`  Avg/Decision: ${(timeReasoning / stepsReasoning).toFixed(2)}ms\n`);
+
+            appendOutput('COMPARISON:');
+            appendOutput(`  Reward Improvement: ${((world2.totalReward - world1.totalReward) / Math.abs(world1.totalReward) * 100).toFixed(1)}%`);
+            appendOutput(`  Time Overhead: ${((timeReasoning / timeReactive - 1) * 100).toFixed(1)}%`);
+            
+            const winner = world2.totalReward > world1.totalReward ? 'REASONING AGENT' : 'REACTIVE AGENT';
+            appendOutput(`\n🏆 Winner: ${winner}`);
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            appendOutput('Interactive demonstration ready. Click a button above to begin...');
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,1968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyperparameter Tuning & Tool-Calling Agent Architectures</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            color: #e0e0e0;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 15px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            font-size: 2.8em;
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #a0a0a0;
+            margin-top: 10px;
+        }
+
+        .section {
+            background: rgba(22, 33, 62, 0.6);
+            padding: 35px;
+            margin-bottom: 30px;
+            border-radius: 12px;
+            border-left: 4px solid #00d4ff;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 48px rgba(0, 212, 255, 0.2);
+        }
+
+        h2 {
+            color: #00d4ff;
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        h3 {
+            color: #7b2ff7;
+            font-size: 1.5em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+
+        h4 {
+            color: #00d4ff;
+            font-size: 1.2em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .math-block {
+            background: rgba(10, 10, 10, 0.8);
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 3px solid #7b2ff7;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .code-block {
+            background: rgba(10, 10, 10, 0.9);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid rgba(123, 47, 247, 0.3);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: 'Python';
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 0.7em;
+            color: #7b2ff7;
+            opacity: 0.6;
+        }
+
+        .keyword { color: #ff6b9d; }
+        .string { color: #a8e063; }
+        .comment { color: #6c757d; font-style: italic; }
+        .function { color: #00d4ff; }
+        .number { color: #ffa500; }
+
+        .interactive-demo {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(123, 47, 247, 0.1) 100%);
+            padding: 30px;
+            margin: 25px 0;
+            border-radius: 12px;
+            border: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .control-group {
+            background: rgba(10, 10, 10, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        label {
+            display: block;
+            color: #00d4ff;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-top: 5px;
+            accent-color: #7b2ff7;
+        }
+
+        select {
+            width: 100%;
+            padding: 8px;
+            background: rgba(10, 10, 10, 0.8);
+            color: #e0e0e0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .value-display {
+            display: inline-block;
+            background: rgba(123, 47, 247, 0.3);
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #00d4ff;
+            margin-left: 10px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+            margin: 5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 212, 255, 0.5);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .visualization {
+            background: rgba(10, 10, 10, 0.8);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            min-height: 200px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .metric-card {
+            background: rgba(0, 212, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #00d4ff;
+            margin: 10px 0;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #a0a0a0;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 1.5em;
+            color: #00d4ff;
+            font-weight: 700;
+            font-family: monospace;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(10, 10, 10, 0.6);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .comparison-table th {
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(123, 47, 247, 0.2) 100%);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .callout {
+            background: rgba(123, 47, 247, 0.15);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #7b2ff7;
+        }
+
+        .callout-title {
+            color: #7b2ff7;
+            font-weight: 700;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .warning-box {
+            background: rgba(255, 165, 0, 0.1);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #ffa500;
+        }
+
+        .warning-title {
+            color: #ffa500;
+            font-weight: 700;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .success-box {
+            background: rgba(168, 224, 99, 0.1);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #a8e063;
+        }
+
+        .success-title {
+            color: #a8e063;
+            font-weight: 700;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .grid-3col {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-3col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .control-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+
+        .status-good { background: rgba(168, 224, 99, 0.3); color: #a8e063; }
+        .status-warning { background: rgba(255, 165, 0, 0.3); color: #ffa500; }
+        .status-bad { background: rgba(255, 107, 157, 0.3); color: #ff6b9d; }
+
+        .architecture-box {
+            background: rgba(0, 212, 255, 0.05);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .architecture-title {
+            color: #00d4ff;
+            font-weight: 700;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .component-box {
+            background: rgba(10, 10, 10, 0.6);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 3px solid #7b2ff7;
+        }
+
+        .flow-diagram {
+            background: rgba(10, 10, 10, 0.8);
+            padding: 30px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            overflow-x: auto;
+        }
+
+        .flow-step {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(123, 47, 247, 0.2) 100%);
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            position: relative;
+        }
+
+        .flow-step::after {
+            content: '↓';
+            display: block;
+            text-align: center;
+            font-size: 1.5em;
+            color: #00d4ff;
+            margin-top: 10px;
+        }
+
+        .flow-step:last-child::after {
+            display: none;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: 700;
+            margin-right: 10px;
+        }
+
+        canvas {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+
+        .hyperparameter-range {
+            background: rgba(10, 10, 10, 0.6);
+            padding: 10px;
+            border-radius: 4px;
+            margin: 5px 0;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .tool-card {
+            background: rgba(123, 47, 247, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(123, 47, 247, 0.3);
+            margin: 10px 0;
+        }
+
+        .tool-name {
+            color: #7b2ff7;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .agent-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
+        ul, ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Hyperparameter Tuning & Tool-Calling Architectures</h1>
+            <div class="subtitle">From PPO/GRPO Optimization to Deep Research Agent Design</div>
+        </header>
+
+        <!-- Section 1: Hyperparameter Tuning -->
+        <div class="section">
+            <h2>Hyperparameter Tuning for PPO/GRPO</h2>
+            
+            <p>Successful RL training depends critically on <span class="highlight">hyperparameter tuning</span>. Small changes can mean the difference between stable convergence and catastrophic collapse.</p>
+
+            <h3>The Big Three: Learning Rate, KL Penalty, Clipping</h3>
+
+            <div class="grid-3col">
+                <div class="metric-card">
+                    <div class="metric-label">Learning Rate (α)</div>
+                    <div class="metric-value">1e-6 to 1e-4</div>
+                    <p style="margin-top: 10px; font-size: 0.9em;">Controls update step size</p>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">KL Penalty (β)</div>
+                    <div class="metric-value">0.01 to 0.5</div>
+                    <p style="margin-top: 10px; font-size: 0.9em;">Prevents policy drift</p>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Clipping (ε)</div>
+                    <div class="metric-value">0.1 to 0.3</div>
+                    <p style="margin-top: 10px; font-size: 0.9em;">Limits policy updates</p>
+                </div>
+            </div>
+
+            <h3>Learning Rate: The Foundation</h3>
+            
+            <div class="math-block">
+                <strong>Parameter Update:</strong><br><br>
+                θ_{t+1} = θ_t - α · ∇_θ L(θ_t)<br><br>
+                
+                <strong>Typical Ranges for LLMs:</strong><br><br>
+                • Small models (1-7B): α ∈ [1e-5, 5e-5]<br>
+                • Medium models (7-30B): α ∈ [5e-6, 2e-5]<br>
+                • Large models (70B+): α ∈ [1e-6, 5e-6]<br><br>
+                
+                <strong>Learning Rate Schedule:</strong><br><br>
+                • Cosine decay: α_t = α_0 · 0.5 · (1 + cos(πt/T))<br>
+                • Linear warmup: α_t = α_0 · min(1, t/warmup_steps)<br>
+                • Constant with decay: α_t = α_0 · decay^(t/decay_steps)
+            </div>
+
+            <div class="warning-box">
+                <div class="warning-title">⚠️ Common Learning Rate Mistakes</div>
+                <ul>
+                    <li><strong>Too high (>1e-4):</strong> Policy oscillates wildly, training diverges</li>
+                    <li><strong>Too low (<1e-7):</strong> Training is extremely slow, stuck in local minima</li>
+                    <li><strong>No warmup:</strong> Initial updates are unstable, can damage pretrained knowledge</li>
+                    <li><strong>No decay:</strong> Model keeps changing even when converged, never stabilizes</li>
+                </ul>
+            </div>
+
+            <h3>KL Penalty (β): Preventing Reward Hacking</h3>
+
+            <div class="math-block">
+                <strong>Regularized Objective:</strong><br><br>
+                J(θ) = 𝔼[r(x,y)] - β·KL(π_θ || π_ref)<br><br>
+                
+                <strong>KL Divergence:</strong><br><br>
+                KL(π_θ || π_ref) = 𝔼_{y~π_θ}[log π_θ(y|x) - log π_ref(y|x)]<br><br>
+                
+                <strong>Adaptive β (DeepSeek R1 approach):</strong><br><br>
+                If KL > KL_target × 1.5: β ← β × 1.5<br>
+                If KL < KL_target × 0.5: β ← β × 0.5<br><br>
+                
+                Typical values:<br>
+                • KL_target ∈ [0.01, 0.05] (nats)<br>
+                • β_init ∈ [0.05, 0.1]<br>
+                • β_min = 0.001, β_max = 1.0
+            </div>
+
+            <div class="grid-2col">
+                <div class="callout">
+                    <div class="callout-title">✅ Good β Settings</div>
+                    <ul>
+                        <li><strong>β = 0.05-0.1:</strong> Balanced exploration</li>
+                        <li><strong>Adaptive β:</strong> Automatically adjusts to KL</li>
+                        <li><strong>Warmup β:</strong> Start high (0.2), decay to 0.05</li>
+                    </ul>
+                </div>
+                <div class="warning-box">
+                    <div class="warning-title">❌ Bad β Settings</div>
+                    <ul>
+                        <li><strong>β = 0:</strong> No regularization, reward hacking</li>
+                        <li><strong>β > 0.5:</strong> Policy stuck, no learning</li>
+                        <li><strong>Fixed β:</strong> Doesn't adapt to training dynamics</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>PPO Clipping (ε): Stability Through Constraints</h3>
+
+            <div class="math-block">
+                <strong>PPO Clipped Objective:</strong><br><br>
+                L_CLIP(θ) = 𝔼[min(ρ_θ(y|x)·Â, clip(ρ_θ, 1-ε, 1+ε)·Â)]<br><br>
+                
+                where ρ_θ(y|x) = π_θ(y|x) / π_old(y|x)<br><br>
+                
+                <strong>Typical values:</strong><br>
+                • ε = 0.2 (standard, works for most tasks)<br>
+                • ε = 0.1 (conservative, very stable)<br>
+                • ε = 0.3 (aggressive, faster but riskier)<br><br>
+                
+                <strong>Effect of clipping:</strong><br>
+                Prevents policy from changing too much in a single update,<br>
+                even if advantage is very large.
+            </div>
+
+            <div class="interactive-demo">
+                <h3>Interactive Hyperparameter Tuning Simulator</h3>
+                <p>Simulate training dynamics with different hyperparameter settings:</p>
+
+                <div class="control-panel">
+                    <div class="control-group">
+                        <label>Learning Rate (α): <span class="value-display" id="lrDisplay">1e-5</span></label>
+                        <input type="range" id="learningRate" min="-7" max="-4" value="-5" step="0.1" oninput="updateLR()">
+                    </div>
+                    <div class="control-group">
+                        <label>KL Penalty (β): <span class="value-display" id="betaDisplay">0.1</span></label>
+                        <input type="range" id="betaValue" min="0.01" max="0.5" value="0.1" step="0.01" oninput="updateBeta()">
+                    </div>
+                    <div class="control-group">
+                        <label>PPO Clipping (ε): <span class="value-display" id="clipDisplay">0.2</span></label>
+                        <input type="range" id="clipValue" min="0.05" max="0.4" value="0.2" step="0.05" oninput="updateClip()">
+                    </div>
+                </div>
+
+                <button onclick="simulateTraining()">Run Training Simulation</button>
+                <button onclick="resetSimulation()">Reset</button>
+
+                <div id="trainingResults" class="visualization"></div>
+                <canvas id="trainingChart" style="margin-top: 20px;"></canvas>
+            </div>
+
+            <h3>Sparse Rewards: The Long-Horizon Challenge</h3>
+
+            <p>Many real-world tasks have <span class="highlight">sparse rewards</span> - you only get feedback after many steps. This makes RL extremely difficult.</p>
+
+            <div class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Problem</th>
+                        <th>Example</th>
+                        <th>Solution Strategy</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>No intermediate feedback</strong></td>
+                        <td>Code generation - only get reward if it compiles and passes tests</td>
+                        <td>Reward shaping: Add partial rewards for syntax, style, partial correctness</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Long credit assignment</strong></td>
+                        <td>Multi-turn reasoning - final answer depends on many steps</td>
+                        <td>Hindsight Experience Replay (HER): Learn from failures by relabeling goals</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Exploration difficulty</strong></td>
+                        <td>Web navigation - huge action space, rare successes</td>
+                        <td>Curiosity-driven exploration: Reward novelty and information gain</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Delayed rewards</strong></td>
+                        <td>Research agent - value only known after full investigation</td>
+                        <td>Temporal difference learning with n-step returns</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="code-block">
+<span class="keyword">class</span> <span class="function">SparseRewardSolutions</span>:
+    <span class="string">"""Techniques for handling sparse rewards in RL."""</span>
+    
+    @staticmethod
+    <span class="keyword">def</span> <span class="function">reward_shaping</span>(
+        sparse_reward: <span class="keyword">float</span>,
+        intermediate_signals: List[<span class="keyword">float</span>]
+    ) -> <span class="keyword">float</span>:
+        <span class="string">"""
+        Add shaped rewards to provide denser signal.
+        
+        Example for code generation:
+        - sparse_reward: 1.0 if all tests pass, 0.0 otherwise
+        - intermediate_signals: [has_def, has_return, has_docstring, ...]
+        """</span>
+        <span class="comment"># Combine sparse and shaped rewards</span>
+        shaped_reward = sparse_reward  <span class="comment"># Final reward dominates</span>
+        
+        <span class="comment"># Add smaller intermediate rewards</span>
+        <span class="keyword">for</span> signal <span class="keyword">in</span> intermediate_signals:
+            shaped_reward += <span class="number">0.1</span> * signal  <span class="comment"># 10% weight each</span>
+        
+        <span class="keyword">return</span> shaped_reward
+    
+    @staticmethod
+    <span class="keyword">def</span> <span class="function">hindsight_experience_replay</span>(
+        trajectory: List[Tuple],
+        achieved_goal,
+        desired_goal
+    ) -> List[Tuple]:
+        <span class="string">"""
+        Learn from failures by pretending you wanted what you achieved.
+        
+        If agent fails at task A but accidentally solves task B,
+        relabel trajectory as if B was the goal and get reward=1.
+        """</span>
+        relabeled_trajectory = []
+        
+        <span class="keyword">for</span> state, action, _, next_state <span class="keyword">in</span> trajectory:
+            <span class="comment"># Original goal: reward = 0 (failed)</span>
+            <span class="comment"># Hindsight goal: reward = 1 if we achieved it</span>
+            hindsight_reward = <span class="number">1.0</span> <span class="keyword">if</span> achieved_goal == desired_goal <span class="keyword">else</span> <span class="number">0.0</span>
+            
+            relabeled_trajectory.append(
+                (state, action, hindsight_reward, next_state)
+            )
+        
+        <span class="keyword">return</span> relabeled_trajectory
+    
+    @staticmethod
+    <span class="keyword">def</span> <span class="function">curiosity_bonus</span>(
+        state_embedding: torch.Tensor,
+        visited_states: List[torch.Tensor]
+    ) -> <span class="keyword">float</span>:
+        <span class="string">"""
+        Reward exploration of novel states.
+        Encourages agent to try new things.
+        """</span>
+        <span class="keyword">if</span> len(visited_states) == <span class="number">0</span>:
+            <span class="keyword">return</span> <span class="number">1.0</span>
+        
+        <span class="comment"># Compute distance to nearest visited state</span>
+        distances = [
+            torch.norm(state_embedding - visited)
+            <span class="keyword">for</span> visited <span class="keyword">in</span> visited_states
+        ]
+        min_distance = min(distances)
+        
+        <span class="comment"># Novelty bonus: higher reward for more novel states</span>
+        curiosity_reward = min_distance.item() / <span class="number">10.0</span>
+        
+        <span class="keyword">return</span> curiosity_reward
+    
+    @staticmethod
+    <span class="keyword">def</span> <span class="function">n_step_returns</span>(
+        rewards: List[<span class="keyword">float</span>],
+        values: List[<span class="keyword">float</span>],
+        gamma: <span class="keyword">float</span> = <span class="number">0.99</span>,
+        n: <span class="keyword">int</span> = <span class="number">5</span>
+    ) -> List[<span class="keyword">float</span>]:
+        <span class="string">"""
+        Compute n-step returns for better credit assignment.
+        
+        Instead of waiting for final reward, look ahead n steps.
+        """</span>
+        returns = []
+        
+        <span class="keyword">for</span> t <span class="keyword">in</span> range(len(rewards)):
+            n_step_return = <span class="number">0</span>
+            
+            <span class="comment"># Sum discounted rewards for next n steps</span>
+            <span class="keyword">for</span> k <span class="keyword">in</span> range(min(n, len(rewards) - t)):
+                n_step_return += (gamma ** k) * rewards[t + k]
+            
+            <span class="comment"># Bootstrap with value estimate</span>
+            <span class="keyword">if</span> t + n < len(values):
+                n_step_return += (gamma ** n) * values[t + n]
+            
+            returns.append(n_step_return)
+        
+        <span class="keyword">return</span> returns
+            </div>
+
+            <h3>Practical Tuning Guidelines</h3>
+
+            <div class="success-box">
+                <div class="success-title">🎯 Recommended Starting Points (70B LLM)</div>
+                <div class="hyperparameter-range">Learning Rate: α = 1e-6 (with 500-step warmup)</div>
+                <div class="hyperparameter-range">KL Penalty: β = 0.1 (adaptive, target KL = 0.02)</div>
+                <div class="hyperparameter-range">PPO Clipping: ε = 0.2</div>
+                <div class="hyperparameter-range">Batch Size: 64-128 prompts</div>
+                <div class="hyperparameter-range">PPO Epochs: 4</div>
+                <div class="hyperparameter-range">GRPO Group Size: 8 samples per prompt</div>
+                <div class="hyperparameter-range">Gradient Clipping: max_norm = 1.0</div>
+            </div>
+        </div>
+
+        <!-- Section 2: Tool-Calling Architectures -->
+        <div class="section">
+            <h2>Tool-Calling as Reinforcement Learning</h2>
+            
+            <p>Modern LLM agents use <span class="highlight">tool calling</span> as their primary action space. We can frame this as an RL problem where actions are tool invocations.</p>
+
+            <h3>Defining Tool APIs as Action Spaces</h3>
+
+            <div class="math-block">
+                <strong>Action Space for Tool-Using Agents:</strong><br><br>
+                A = {a₁, a₂, ..., a_n} where each action is:<br><br>
+                
+                a_i = (tool_name, parameters, context)<br><br>
+                
+                Example actions:<br>
+                • a₁ = ("web_search", {"query": "...", "max_results": 5})<br>
+                • a₂ = ("code_execute", {"code": "...", "timeout": 30})<br>
+                • a₃ = ("file_read", {"path": "/data/file.txt"})<br>
+                • a₄ = ("done", {"final_answer": "..."})<br><br>
+                
+                <strong>State Space:</strong><br><br>
+                s_t = (user_query, tool_history, current_context)<br><br>
+                
+                <strong>Reward Function:</strong><br><br>
+                r(s, a) = task_success(final_answer) + efficiency_penalty(num_tools)
+            </div>
+
+            <div class="architecture-box">
+                <div class="architecture-title">🏗️ Tool-Calling Agent Architecture</div>
+                
+                <div class="flow-diagram">
+                    <div class="flow-step">
+                        <span class="step-number">1</span>
+                        <strong>User Query Input</strong><br>
+                        <span style="color: #a0a0a0; font-size: 0.9em;">Initial state s₀ = (query, ∅, ∅)</span>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <span class="step-number">2</span>
+                        <strong>Policy Network (LLM)</strong><br>
+                        <span style="color: #a0a0a0; font-size: 0.9em;">π_θ(a|s) → Select tool and parameters</span>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <span class="step-number">3</span>
+                        <strong>Tool Execution</strong><br>
+                        <span style="color: #a0a0a0; font-size: 0.9em;">Environment executes tool → Returns result</span>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <span class="step-number">4</span>
+                        <strong>State Update</strong><br>
+                        <span style="color: #a0a0a0; font-size: 0.9em;">s_{t+1} = (query, history + [a_t, result], context')</span>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <span class="step-number">5</span>
+                        <strong>Termination Check</strong><br>
+                        <span style="color: #a0a0a0; font-size: 0.9em;">If done: r = evaluate(answer); else: repeat from step 2</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-block">
+<span class="keyword">from</span> typing <span class="keyword">import</span> Dict, List, Any, Optional
+<span class="keyword">from</span> dataclasses <span class="keyword">import</span> dataclass
+<span class="keyword">import</span> json
+
+@dataclass
+<span class="keyword">class</span> <span class="function">Tool</span>:
+    <span class="string">"""Tool definition with API schema."""</span>
+    name: <span class="keyword">str</span>
+    description: <span class="keyword">str</span>
+    parameters: Dict[<span class="keyword">str</span>, Any]  <span class="comment"># JSON schema</span>
+    execute: Callable
+
+@dataclass
+<span class="keyword">class</span> <span class="function">AgentState</span>:
+    <span class="string">"""Complete state of the agent at time t."""</span>
+    query: <span class="keyword">str</span>
+    tool_history: List[Tuple[<span class="keyword">str</span>, Dict, Any]]  <span class="comment"># (tool, params, result)</span>
+    context: <span class="keyword">str</span>  <span class="comment"># Current accumulated knowledge</span>
+    step: <span class="keyword">int</span>
+    is_done: <span class="keyword">bool</span> = <span class="keyword">False</span>
+
+
+<span class="keyword">class</span> <span class="function">ToolCallingEnvironment</span>:
+    <span class="string">"""
+    RL Environment for tool-using agents.
+    Treats tool calls as actions in an MDP.
+    """</span>
+    
+    <span class="keyword">def</span> <span class="function">__init__</span>(self, tools: List[Tool], max_steps: <span class="keyword">int</span> = <span class="number">10</span>):
+        self.tools = {tool.name: tool <span class="keyword">for</span> tool <span class="keyword">in</span> tools}
+        self.max_steps = max_steps
+        self.state: Optional[AgentState] = <span class="keyword">None</span>
+    
+    <span class="keyword">def</span> <span class="function">reset</span>(self, query: <span class="keyword">str</span>) -> AgentState:
+        <span class="string">"""Initialize new episode with user query."""</span>
+        self.state = AgentState(
+            query=query,
+            tool_history=[],
+            context=<span class="string">""</span>,
+            step=<span class="number">0</span>
+        )
+        <span class="keyword">return</span> self.state
+    
+    <span class="keyword">def</span> <span class="function">step</span>(
+        self,
+        action: Dict[<span class="keyword">str</span>, Any]
+    ) -> Tuple[AgentState, <span class="keyword">float</span>, <span class="keyword">bool</span>, Dict]:
+        <span class="string">"""
+        Execute one tool call action.
+        
+        Args:
+            action: {"tool": str, "parameters": dict, "reasoning": str}
+        
+        Returns:
+            next_state, reward, done, info
+        """</span>
+        <span class="keyword">if</span> self.state <span class="keyword">is</span> <span class="keyword">None</span>:
+            <span class="keyword">raise</span> ValueError(<span class="string">"Must call reset() first"</span>)
+        
+        tool_name = action[<span class="string">"tool"</span>]
+        parameters = action[<span class="string">"parameters"</span>]
+        
+        <span class="comment"># Check for termination action</span>
+        <span class="keyword">if</span> tool_name == <span class="string">"done"</span>:
+            final_answer = parameters.get(<span class="string">"answer"</span>, <span class="string">""</span>)
+            reward = self.evaluate_answer(final_answer)
+            self.state.is_done = <span class="keyword">True</span>
+            <span class="keyword">return</span> self.state, reward, <span class="keyword">True</span>, {<span class="string">"answer"</span>: final_answer}
+        
+        <span class="comment"># Execute tool</span>
+        <span class="keyword">if</span> tool_name <span class="keyword">not</span> <span class="keyword">in</span> self.tools:
+            <span class="comment"># Invalid tool → negative reward</span>
+            reward = <span class="number">-0.1</span>
+            result = {<span class="string">"error"</span>: <span class="string">f"Unknown tool: {tool_name}"</span>}
+        <span class="keyword">else</span>:
+            tool = self.tools[tool_name]
+            <span class="keyword">try</span>:
+                result = tool.execute(**parameters)
+                reward = <span class="number">0.0</span>  <span class="comment"># Intermediate step, no reward yet</span>
+            <span class="keyword">except</span> Exception <span class="keyword">as</span> e:
+                result = {<span class="string">"error"</span>: <span class="keyword">str</span>(e)}
+                reward = <span class="number">-0.05</span>  <span class="comment"># Small penalty for errors</span>
+        
+        <span class="comment"># Update state</span>
+        self.state.tool_history.append((tool_name, parameters, result))
+        self.state.context += <span class="string">f"\n[{tool_name}]: {result}"</span>
+        self.state.step += <span class="number">1</span>
+        
+        <span class="comment"># Check termination conditions</span>
+        done = self.state.step >= self.max_steps
+        <span class="keyword">if</span> done:
+            reward = <span class="number">-0.5</span>  <span class="comment"># Penalty for not finishing</span>
+        
+        info = {
+            <span class="string">"tool"</span>: tool_name,
+            <span class="string">"result"</span>: result,
+            <span class="string">"step"</span>: self.state.step
+        }
+        
+        <span class="keyword">return</span> self.state, reward, done, info
+    
+    <span class="keyword">def</span> <span class="function">evaluate_answer</span>(self, answer: <span class="keyword">str</span>) -> <span class="keyword">float</span>:
+        <span class="string">"""Evaluate final answer quality."""</span>
+        <span class="comment"># In practice, use ground truth, LLM judge, or human feedback</span>
+        <span class="comment"># For now, return based on answer length and tool usage</span>
+        reward = <span class="number">0.5</span>  <span class="comment"># Base reward for completing</span>
+        
+        <span class="comment"># Bonus for concise solutions</span>
+        <span class="keyword">if</span> self.state.step <= <span class="number">5</span>:
+            reward += <span class="number">0.3</span>
+        
+        <span class="comment"># Bonus for using tools effectively</span>
+        <span class="keyword">if</span> len(self.state.tool_history) > <span class="number">0</span>:
+            reward += <span class="number">0.2</span>
+        
+        <span class="keyword">return</span> reward
+            </div>
+
+            <h3>Designing Environments with Memory</h3>
+
+            <p>Tool-calling agents need <span class="highlight">memory</span> to track conversation history, tool results, and intermediate reasoning. This is critical for multi-step tasks.</p>
+
+            <div class="grid-2col">
+                <div class="component-box">
+                    <h4>Short-Term Memory</h4>
+                    <ul>
+                        <li><strong>Working context:</strong> Current conversation turn</li>
+                        <li><strong>Tool results:</strong> Outputs from recent tool calls</li>
+                        <li><strong>Intermediate thoughts:</strong> Reasoning traces</li>
+                        <li><strong>Implementation:</strong> In-context (last N messages)</li>
+                    </ul>
+                </div>
+                
+                <div class="component-box">
+                    <h4>Long-Term Memory</h4>
+                    <ul>
+                        <li><strong>User preferences:</strong> Learned over sessions</li>
+                        <li><strong>Episodic memory:</strong> Past successful strategies</li>
+                        <li><strong>Semantic memory:</strong> Retrieved facts/docs</li>
+                        <li><strong>Implementation:</strong> Vector DB, RAG system</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="code-block">
+<span class="keyword">class</span> <span class="function">AgentMemory</span>:
+    <span class="string">"""
+    Memory system for tool-calling agents.
+    Manages short-term (context window) and long-term (retrieval) memory.
+    """</span>
+    
+    <span class="keyword">def</span> <span class="function">__init__</span>(
+        self,
+        max_context_length: <span class="keyword">int</span> = <span class="number">8000</span>,
+        vector_store = <span class="keyword">None</span>
+    ):
+        self.max_context_length = max_context_length
+        self.vector_store = vector_store
+        
+        <span class="comment"># Short-term memory (conversation history)</span>
+        self.messages: List[Dict] = []
+        self.tool_results: List[Dict] = []
+        
+        <span class="comment"># Long-term memory (key-value pairs)</span>
+        self.episodic_memory: List[Dict] = []  <span class="comment"># Past episodes</span>
+        self.semantic_memory: Dict = {}  <span class="comment"># Facts/knowledge</span>
+    
+    <span class="keyword">def</span> <span class="function">add_message</span>(self, role: <span class="keyword">str</span>, content: <span class="keyword">str</span>):
+        <span class="string">"""Add message to short-term memory."""</span>
+        self.messages.append({
+            <span class="string">"role"</span>: role,
+            <span class="string">"content"</span>: content,
+            <span class="string">"timestamp"</span>: time.time()
+        })
+        self._trim_context()
+    
+    <span class="keyword">def</span> <span class="function">add_tool_result</span>(self, tool: <span class="keyword">str</span>, result: Any):
+        <span class="string">"""Store tool execution result."""</span>
+        self.tool_results.append({
+            <span class="string">"tool"</span>: tool,
+            <span class="string">"result"</span>: result,
+            <span class="string">"timestamp"</span>: time.time()
+        })
+    
+    <span class="keyword">def</span> <span class="function">get_context</span>(self) -> <span class="keyword">str</span>:
+        <span class="string">"""Build context string for LLM prompt."""</span>
+        context_parts = []
+        
+        <span class="comment"># Add conversation history</span>
+        <span class="keyword">for</span> msg <span class="keyword">in</span> self.messages[<span class="number">-10</span>:]:  <span class="comment"># Last 10 messages</span>
+            context_parts.append(<span class="string">f"{msg['role']}: {msg['content']}"</span>)
+        
+        <span class="comment"># Add recent tool results</span>
+        <span class="keyword">if</span> self.tool_results:
+            context_parts.append(<span class="string">"\n[Tool Results]:"</span>)
+            <span class="keyword">for</span> tr <span class="keyword">in</span> self.tool_results[<span class="number">-5</span>:]:
+                context_parts.append(<span class="string">f"  {tr['tool']}: {tr['result']}"</span>)
+        
+        <span class="keyword">return</span> <span class="string">"\n"</span>.join(context_parts)
+    
+    <span class="keyword">def</span> <span class="function">retrieve_relevant</span>(self, query: <span class="keyword">str</span>, k: <span class="keyword">int</span> = <span class="number">3</span>) -> List[Dict]:
+        <span class="string">"""Retrieve k most relevant memories using vector similarity."""</span>
+        <span class="keyword">if</span> self.vector_store <span class="keyword">is</span> <span class="keyword">None</span>:
+            <span class="keyword">return</span> []
+        
+        <span class="comment"># Search episodic memory</span>
+        results = self.vector_store.similarity_search(query, k=k)
+        <span class="keyword">return</span> results
+    
+    <span class="keyword">def</span> <span class="function">store_episode</span>(self, episode: Dict):
+        <span class="string">"""
+        Store completed episode for future retrieval.
+        
+        Episode format:
+        {
+            "query": str,
+            "actions": List[action],
+            "reward": float,
+            "success": bool
+        }
+        """</span>
+        self.episodic_memory.append(episode)
+        
+        <span class="comment"># Also add to vector store for retrieval</span>
+        <span class="keyword">if</span> self.vector_store:
+            text = <span class="string">f"{episode['query']} | {episode['actions']}"</span>
+            self.vector_store.add_texts([text], metadatas=[episode])
+    
+    <span class="keyword">def</span> <span class="function">_trim_context</span>(self):
+        <span class="string">"""Keep context under max length."""</span>
+        total_length = sum(len(m[<span class="string">"content"</span>]) <span class="keyword">for</span> m <span class="keyword">in</span> self.messages)
+        
+        <span class="keyword">while</span> total_length > self.max_context_length <span class="keyword">and</span> len(self.messages) > <span class="number">1</span>:
+            removed = self.messages.pop(<span class="number">0</span>)
+            total_length -= len(removed[<span class="string">"content"</span>])
+            </div>
+        </div>
+
+        <!-- Section 3: LangGraph Architecture -->
+        <div class="section">
+            <h2>LangGraph-Based Agent Environments</h2>
+            
+            <p><span class="highlight">LangGraph</span> provides a framework for building stateful, multi-step agents with explicit state management and control flow.</p>
+
+            <h3>Core LangGraph Concepts</h3>
+
+            <div class="grid-3col">
+                <div class="metric-card">
+                    <div class="metric-label">State Graph</div>
+                    <div class="metric-value">Nodes</div>
+                    <p style="margin-top: 10px; font-size: 0.9em;">Functions that process state</p>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Edges</div>
+                    <div class="metric-value">Transitions</div>
+                    <p style="margin-top: 10px; font-size: 0.9em;">Conditional routing logic</p>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Persistence</div>
+                    <div class="metric-value">Checkpoints</div>
+                    <p style="margin-top: 10px; font-size: 0.9em;">State saved between steps</p>
+                </div>
+            </div>
+
+            <div class="code-block">
+<span class="keyword">from</span> langgraph.graph <span class="keyword">import</span> StateGraph, END
+<span class="keyword">from</span> typing <span class="keyword">import</span> TypedDict, Annotated, Sequence
+<span class="keyword">import</span> operator
+
+<span class="keyword">class</span> <span class="function">AgentState</span>(TypedDict):
+    <span class="string">"""State schema for the agent."""</span>
+    messages: Annotated[Sequence[BaseMessage], operator.add]
+    tools_used: List[<span class="keyword">str</span>]
+    current_context: <span class="keyword">str</span>
+    iteration: <span class="keyword">int</span>
+
+
+<span class="keyword">class</span> <span class="function">ResearchAgent</span>:
+    <span class="string">"""
+    LangGraph-based research agent with tool calling.
+    Demonstrates stateful multi-step reasoning.
+    """</span>
+    
+    <span class="keyword">def</span> <span class="function">__init__</span>(self, llm, tools: List[Tool]):
+        self.llm = llm
+        self.tools = {t.name: t <span class="keyword">for</span> t <span class="keyword">in</span> tools}
+        self.graph = self._build_graph()
+    
+    <span class="keyword">def</span> <span class="function">_build_graph</span>(self) -> StateGraph:
+        <span class="string">"""Construct the agent control flow graph."""</span>
+        workflow = StateGraph(AgentState)
+        
+        <span class="comment"># Define nodes (agent reasoning steps)</span>
+        workflow.add_node(<span class="string">"planner"</span>, self.plan_step)
+        workflow.add_node(<span class="string">"tool_executor"</span>, self.execute_tools)
+        workflow.add_node(<span class="string">"synthesizer"</span>, self.synthesize_answer)
+        
+        <span class="comment"># Define edges (state transitions)</span>
+        workflow.set_entry_point(<span class="string">"planner"</span>)
+        
+        <span class="comment"># Conditional routing from planner</span>
+        workflow.add_conditional_edges(
+            <span class="string">"planner"</span>,
+            self.should_use_tools,
+            {
+                <span class="string">"tools"</span>: <span class="string">"tool_executor"</span>,
+                <span class="string">"synthesize"</span>: <span class="string">"synthesizer"</span>,
+                <span class="string">"end"</span>: END
+            }
+        )
+        
+        <span class="comment"># Tool executor loops back to planner</span>
+        workflow.add_edge(<span class="string">"tool_executor"</span>, <span class="string">"planner"</span>)
+        
+        <span class="comment"># Synthesizer ends the workflow</span>
+        workflow.add_edge(<span class="string">"synthesizer"</span>, END)
+        
+        <span class="keyword">return</span> workflow.compile()
+    
+    <span class="keyword">def</span> <span class="function">plan_step</span>(self, state: AgentState) -> AgentState:
+        <span class="string">"""
+        Planning node: Decide what to do next.
+        This is where the LLM reasons about the task.
+        """</span>
+        messages = state[<span class="string">"messages"</span>]
+        
+        <span class="comment"># Create planning prompt</span>
+        system_prompt = <span class="string">"""You are a research assistant. Analyze the task and decide:
+1. What tools to use next (if any)
+2. Whether you have enough information to answer
+3. What your next action should be
+
+Available tools: {tools}
+
+Respond in JSON:
+{{
+  "reasoning": "...",
+  "action": "use_tool" | "synthesize" | "done",
+  "tool": "..." (if action is use_tool),
+  "parameters": {{...}}
+}}
+"""</span>.format(tools=list(self.tools.keys()))
+        
+        response = self.llm.invoke([
+            {<span class="string">"role"</span>: <span class="string">"system"</span>, <span class="string">"content"</span>: system_prompt},
+            *messages
+        ])
+        
+        plan = json.loads(response.content)
+        
+        <span class="comment"># Update state with plan</span>
+        state[<span class="string">"messages"</span>].append(response)
+        state[<span class="string">"iteration"</span>] += <span class="number">1</span>
+        
+        <span class="keyword">return</span> state
+    
+    <span class="keyword">def</span> <span class="function">should_use_tools</span>(self, state: AgentState) -> <span class="keyword">str</span>:
+        <span class="string">"""Routing function: Determine next node based on plan."""</span>
+        last_message = state[<span class="string">"messages"</span>][<span class="number">-1</span>]
+        
+        <span class="keyword">try</span>:
+            plan = json.loads(last_message.content)
+            action = plan.get(<span class="string">"action"</span>, <span class="string">"done"</span>)
+            
+            <span class="keyword">if</span> action == <span class="string">"use_tool"</span>:
+                <span class="keyword">return</span> <span class="string">"tools"</span>
+            <span class="keyword">elif</span> action == <span class="string">"synthesize"</span>:
+                <span class="keyword">return</span> <span class="string">"synthesize"</span>
+            <span class="keyword">else</span>:
+                <span class="keyword">return</span> <span class="string">"end"</span>
+        <span class="keyword">except</span>:
+            <span class="keyword">return</span> <span class="string">"end"</span>
+    
+    <span class="keyword">def</span> <span class="function">execute_tools</span>(self, state: AgentState) -> AgentState:
+        <span class="string">"""Execute the selected tool."""</span>
+        last_message = state[<span class="string">"messages"</span>][<span class="number">-1</span>]
+        plan = json.loads(last_message.content)
+        
+        tool_name = plan[<span class="string">"tool"</span>]
+        parameters = plan[<span class="string">"parameters"</span>]
+        
+        <span class="comment"># Execute tool</span>
+        tool = self.tools[tool_name]
+        result = tool.execute(**parameters)
+        
+        <span class="comment"># Update state</span>
+        state[<span class="string">"tools_used"</span>].append(tool_name)
+        state[<span class="string">"current_context"</span>] += <span class="string">f"\n[{tool_name}]: {result}"</span>
+        
+        <span class="comment"># Add tool result as message</span>
+        tool_message = HumanMessage(
+            content=<span class="string">f"Tool {tool_name} returned: {result}"</span>
+        )
+        state[<span class="string">"messages"</span>].append(tool_message)
+        
+        <span class="keyword">return</span> state
+    
+    <span class="keyword">def</span> <span class="function">synthesize_answer</span>(self, state: AgentState) -> AgentState:
+        <span class="string">"""Final synthesis of answer from gathered information."""</span>
+        messages = state[<span class="string">"messages"</span>]
+        context = state[<span class="string">"current_context"</span>]
+        
+        synthesis_prompt = <span class="string">f"""Based on the following information gathered:
+
+{context}
+
+Provide a comprehensive, well-structured answer to the original query.
+"""</span>
+        
+        response = self.llm.invoke([
+            {<span class="string">"role"</span>: <span class="string">"system"</span>, <span class="string">"content"</span>: synthesis_prompt},
+            *messages
+        ])
+        
+        state[<span class="string">"messages"</span>].append(response)
+        
+        <span class="keyword">return</span> state
+    
+    <span class="keyword">def</span> <span class="function">run</span>(self, query: <span class="keyword">str</span>, max_iterations: <span class="keyword">int</span> = <span class="number">10</span>) -> Dict:
+        <span class="string">"""Run the agent on a query."""</span>
+        initial_state = {
+            <span class="string">"messages"</span>: [HumanMessage(content=query)],
+            <span class="string">"tools_used"</span>: [],
+            <span class="string">"current_context"</span>: <span class="string">""</span>,
+            <span class="string">"iteration"</span>: <span class="number">0</span>
+        }
+        
+        <span class="comment"># Execute graph</span>
+        final_state = self.graph.invoke(
+            initial_state,
+            config={<span class="string">"recursion_limit"</span>: max_iterations}
+        )
+        
+        <span class="keyword">return</span> {
+            <span class="string">"answer"</span>: final_state[<span class="string">"messages"</span>][<span class="number">-1</span>].content,
+            <span class="string">"tools_used"</span>: final_state[<span class="string">"tools_used"</span>],
+            <span class="string">"iterations"</span>: final_state[<span class="string">"iteration"</span>]
+        }
+            </div>
+
+            <div class="interactive-demo">
+                <h3>Interactive: Visualize LangGraph Agent Flow</h3>
+                <p>See how an agent navigates through a research task:</p>
+
+                <div class="control-group">
+                    <label>Research Query:</label>
+                    <select id="researchQuery">
+                        <option value="climate">What are the latest developments in climate tech?</option>
+                        <option value="ai">Summarize recent AI breakthroughs in 2024</option>
+                        <option value="quantum">Explain quantum computing applications</option>
+                    </select>
+                </div>
+
+                <button onclick="simulateAgent()">Simulate Agent Execution</button>
+
+                <div id="agentFlow" class="visualization"></div>
+            </div>
+        </div>
+
+        <!-- Section 4: Deep Research Agent Analysis -->
+        <div class="section">
+            <h2>OpenAI Deep Research Agent Architecture <span class="agent-badge">Real-World Analysis</span></h2>
+            
+            <p>OpenAI's Deep Research is a production agent that performs <span class="highlight">multi-hour research tasks</span> with web browsing, information synthesis, and iterative refinement.</p>
+
+            <h3>Deep Research: High-Level Architecture</h3>
+
+            <div class="architecture-box">
+                <div class="architecture-title">🔬 Deep Research System Components</div>
+                
+                <div class="grid-2col">
+                    <div class="component-box">
+                        <h4>1. Query Decomposition</h4>
+                        <p>Break complex research question into sub-questions</p>
+                        <ul>
+                            <li>Identify key aspects of the query</li>
+                            <li>Generate search strategies</li>
+                            <li>Prioritize information needs</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="component-box">
+                        <h4>2. Web Reasoning Engine</h4>
+                        <p>Navigate and extract from multiple web sources</p>
+                        <ul>
+                            <li>Search query formulation</li>
+                            <li>Page selection and ranking</li>
+                            <li>Content extraction and filtering</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="component-box">
+                        <h4>3. Dynamic Retrieval</h4>
+                        <p>Adaptive information gathering based on findings</p>
+                        <ul>
+                            <li>Identify knowledge gaps</li>
+                            <li>Adjust search strategy</li>
+                            <li>Follow citation chains</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="component-box">
+                        <h4>4. Synthesis & Verification</h4>
+                        <p>Combine sources into coherent report</p>
+                        <ul>
+                            <li>Cross-reference facts</li>
+                            <li>Identify contradictions</li>
+                            <li>Generate structured output</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Deep Research Workflow</h3>
+
+            <div class="flow-diagram">
+                <div class="flow-step">
+                    <span class="step-number">1</span>
+                    <strong>Research Planning</strong><br>
+                    <span style="color: #a0a0a0; font-size: 0.9em;">
+                        • Decompose query into 5-10 sub-questions<br>
+                        • Create search plan with prioritization<br>
+                        • Estimate time and source requirements
+                    </span>
+                </div>
+                
+                <div class="flow-step">
+                    <span class="step-number">2</span>
+                    <strong>Iterative Web Search</strong><br>
+                    <span style="color: #a0a0a0; font-size: 0.9em;">
+                        • For each sub-question: formulate search queries<br>
+                        • Browse top results, extract relevant sections<br>
+                        • Store findings in structured knowledge base
+                    </span>
+                </div>
+                
+                <div class="flow-step">
+                    <span class="step-number">3</span>
+                    <strong>Gap Analysis</strong><br>
+                    <span style="color: #a0a0a0; font-size: 0.9em;">
+                        • Identify unanswered sub-questions<br>
+                        • Detect contradictions or inconsistencies<br>
+                        • Generate follow-up queries
+                    </span>
+                </div>
+                
+                <div class="flow-step">
+                    <span class="step-number">4</span>
+                    <strong>Deep Dive on Key Topics</strong><br>
+                    <span style="color: #a0a0a0; font-size: 0.9em;">
+                        • Follow citations and references<br>
+                        • Read full articles on critical points<br>
+                        • Cross-verify claims from multiple sources
+                    </span>
+                </div>
+                
+                <div class="flow-step">
+                    <span class="step-number">5</span>
+                    <strong>Report Generation</strong><br>
+                    <span style="color: #a0a0a0; font-size: 0.9em;">
+                        • Organize findings into coherent structure<br>
+                        • Include citations and source links<br>
+                        • Add confidence levels and caveats
+                    </span>
+                </div>
+            </div>
+
+            <h3>Key Technical Innovations</h3>
+
+            <div class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Challenge</th>
+                        <th>Deep Research Solution</th>
+                        <th>Technical Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Long-Horizon Planning</strong></td>
+                        <td>Hierarchical task decomposition</td>
+                        <td>Tree of sub-questions with dynamic prioritization</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Information Overload</strong></td>
+                        <td>Relevance filtering + summarization</td>
+                        <td>Learned ranker model + extractive summarization</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Verification</strong></td>
+                        <td>Multi-source cross-checking</td>
+                        <td>Claim extraction + contradiction detection</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Dynamic Adaptation</strong></td>
+                        <td>Reflective reasoning loops</td>
+                        <td>Agent reviews progress, adjusts strategy mid-research</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cost Control</strong></td>
+                        <td>Selective deep reading</td>
+                        <td>Light skim (fast) → Deep read (expensive) only when needed</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>RL Training for Deep Research</h3>
+
+            <div class="math-block">
+                <strong>Reward Function for Research Agents:</strong><br><br>
+                r(trajectory) = w₁·completeness(report)<br>
+                              + w₂·accuracy(claims)<br>
+                              + w₃·citation_quality<br>
+                              - w₄·cost(api_calls)<br>
+                              - w₅·time_taken<br><br>
+                
+                where:<br>
+                • completeness: Fraction of sub-questions answered<br>
+                • accuracy: Verified by human raters or ground truth<br>
+                • citation_quality: Source credibility + relevance<br>
+                • cost: Number of web searches + pages read<br>
+                • time: Latency penalty for user experience<br><br>
+                
+                <strong>Sparse Reward Challenge:</strong><br>
+                Only get reward at the END after full report generated.<br>
+                Solution: Reward shaping with intermediate milestones.
+            </div>
+
+            <div class="code-block">
+<span class="keyword">class</span> <span class="function">DeepResearchAgent</span>:
+    <span class="string">"""
+    Simplified version of Deep Research architecture.
+    Demonstrates key patterns: planning, search, synthesis.
+    """</span>
+    
+    <span class="keyword">def</span> <span class="function">__init__</span>(
+        self,
+        llm,
+        search_api,
+        max_sources: <span class="keyword">int</span> = <span class="number">20</span>,
+        max_iterations: <span class="keyword">int</span> = <span class="number">5</span>
+    ):
+        self.llm = llm
+        self.search_api = search_api
+        self.max_sources = max_sources
+        self.max_iterations = max_iterations
+        
+        <span class="comment"># Knowledge base for gathered information</span>
+        self.knowledge: List[Dict] = []
+        self.sub_questions: List[<span class="keyword">str</span>] = []
+        self.answered: Set[<span class="keyword">str</span>] = set()
+    
+    <span class="keyword">def</span> <span class="function">research</span>(self, query: <span class="keyword">str</span>) -> Dict:
+        <span class="string">"""Main research loop."""</span>
+        
+        <span class="comment"># Step 1: Decompose query</span>
+        self.sub_questions = self.decompose_query(query)
+        
+        <span class="comment"># Step 2: Iterative research</span>
+        <span class="keyword">for</span> iteration <span class="keyword">in</span> range(self.max_iterations):
+            <span class="comment"># Find unanswered questions</span>
+            unanswered = [
+                q <span class="keyword">for</span> q <span class="keyword">in</span> self.sub_questions 
+                <span class="keyword">if</span> q <span class="keyword">not</span> <span class="keyword">in</span> self.answered
+            ]
+            
+            <span class="keyword">if</span> <span class="keyword">not</span> unanswered:
+                <span class="keyword">break</span>
+            
+            <span class="comment"># Research next question</span>
+            question = unanswered[<span class="number">0</span>]
+            self.research_question(question)
+            
+            <span class="comment"># Check if we have enough info</span>
+            <span class="keyword">if</span> self.has_sufficient_info():
+                <span class="keyword">break</span>
+        
+        <span class="comment"># Step 3: Generate report</span>
+        report = self.generate_report(query)
+        
+        <span class="keyword">return</span> {
+            <span class="string">"report"</span>: report,
+            <span class="string">"sources"</span>: self.knowledge,
+            <span class="string">"iterations"</span>: iteration + <span class="number">1</span>
+        }
+    
+    <span class="keyword">def</span> <span class="function">decompose_query</span>(self, query: <span class="keyword">str</span>) -> List[<span class="keyword">str</span>]:
+        <span class="string">"""Break query into sub-questions."""</span>
+        prompt = <span class="string">f"""Break this research question into 5-7 sub-questions 
+that would need to be answered to fully address it:
+
+Question: {query}
+
+Return as JSON list of strings.
+"""</span>
+        
+        response = self.llm.invoke(prompt)
+        sub_questions = json.loads(response.content)
+        
+        <span class="keyword">return</span> sub_questions
+    
+    <span class="keyword">def</span> <span class="function">research_question</span>(self, question: <span class="keyword">str</span>):
+        <span class="string">"""Research a single sub-question."""</span>
+        
+        <span class="comment"># Generate search queries</span>
+        search_queries = self.generate_search_queries(question)
+        
+        <span class="comment"># Search and gather sources</span>
+        <span class="keyword">for</span> query <span class="keyword">in</span> search_queries[:3]:  <span class="comment"># Top 3 queries</span>
+            results = self.search_api.search(query, max_results=<span class="number">5</span>)
+            
+            <span class="keyword">for</span> result <span class="keyword">in</span> results:
+                <span class="comment"># Extract relevant information</span>
+                info = self.extract_relevant_info(
+                    result[<span class="string">"content"</span>],
+                    question
+                )
+                
+                <span class="keyword">if</span> info:
+                    self.knowledge.append({
+                        <span class="string">"question"</span>: question,
+                        <span class="string">"source"</span>: result[<span class="string">"url"</span>],
+                        <span class="string">"info"</span>: info,
+                        <span class="string">"title"</span>: result[<span class="string">"title"</span>]
+                    })
+        
+        self.answered.add(question)
+    
+    <span class="keyword">def</span> <span class="function">generate_search_queries</span>(
+        self,
+        question: <span class="keyword">str</span>
+    ) -> List[<span class="keyword">str</span>]:
+        <span class="string">"""Generate 2-3 search queries for a question."""</span>
+        prompt = <span class="string">f"""Generate 2-3 search engine queries to find information 
+for this question: {question}
+
+Return as JSON list.
+"""</span>
+        response = self.llm.invoke(prompt)
+        <span class="keyword">return</span> json.loads(response.content)
+    
+    <span class="keyword">def</span> <span class="function">extract_relevant_info</span>(
+        self,
+        content: <span class="keyword">str</span>,
+        question: <span class="keyword">str</span>
+    ) -> Optional[<span class="keyword">str</span>]:
+        <span class="string">"""Extract relevant passages from source."""</span>
+        prompt = <span class="string">f"""Extract information relevant to this question:
+{question}
+
+From this text:
+{content[:2000]}  # Truncate long content
+
+Return only the relevant excerpt, or "NONE" if not relevant.
+"""</span>
+        
+        response = self.llm.invoke(prompt)
+        info = response.content.strip()
+        
+        <span class="keyword">return</span> <span class="keyword">None</span> <span class="keyword">if</span> info == <span class="string">"NONE"</span> <span class="keyword">else</span> info
+    
+    <span class="keyword">def</span> <span class="function">has_sufficient_info</span>(self) -> <span class="keyword">bool</span>:
+        <span class="string">"""Check if we have enough information."""</span>
+        <span class="comment"># Simple heuristic: answered most questions and have enough sources</span>
+        coverage = len(self.answered) / len(self.sub_questions)
+        <span class="keyword">return</span> coverage >= <span class="number">0.8</span> <span class="keyword">and</span> len(self.knowledge) >= <span class="number">10</span>
+    
+    <span class="keyword">def</span> <span class="function">generate_report</span>(self, original_query: <span class="keyword">str</span>) -> <span class="keyword">str</span>:
+        <span class="string">"""Synthesize findings into final report."""</span>
+        
+        <span class="comment"># Organize knowledge by sub-question</span>
+        organized = {}
+        <span class="keyword">for</span> item <span class="keyword">in</span> self.knowledge:
+            q = item[<span class="string">"question"</span>]
+            <span class="keyword">if</span> q <span class="keyword">not</span> <span class="keyword">in</span> organized:
+                organized[q] = []
+            organized[q].append(item)
+        
+        <span class="comment"># Build context</span>
+        context = <span class="string">f"Research Question: {original_query}\n\n"</span>
+        
+        <span class="keyword">for</span> question, items <span class="keyword">in</span> organized.items():
+            context += <span class="string">f"\nSub-question: {question}\n"</span>
+            context += <span class="string">"Findings:\n"</span>
+            <span class="keyword">for</span> item <span class="keyword">in</span> items[:3]:  <span class="comment"># Top 3 per question</span>
+                context += <span class="string">f"- {item['info']} (Source: {item['title']})\n"</span>
+        
+        <span class="comment"># Generate synthesis</span>
+        prompt = <span class="string">f"""Based on the research findings below, write a comprehensive 
+report answering the original question. Include:
+1. Executive summary
+2. Detailed findings organized by topic
+3. Key takeaways
+4. Limitations and caveats
+
+{context}
+"""</span>
+        
+        response = self.llm.invoke(prompt)
+        <span class="keyword">return</span> response.content
+            </div>
+
+            <div class="success-box">
+                <div class="success-title">✨ Key Takeaways: Deep Research Agent</div>
+                <ol>
+                    <li><strong>Hierarchical planning:</strong> Break complex tasks into manageable sub-tasks</li>
+                    <li><strong>Dynamic adaptation:</strong> Adjust strategy based on what you find</li>
+                    <li><strong>Selective depth:</strong> Skim broadly, read deeply only when needed</li>
+                    <li><strong>Multi-source verification:</strong> Cross-check claims from independent sources</li>
+                    <li><strong>Structured knowledge:</strong> Organize findings for easy synthesis</li>
+                    <li><strong>Cost awareness:</strong> Balance thoroughness with API/latency costs</li>
+                </ol>
+            </div>
+
+            <div class="callout">
+                <div class="callout-title">🔬 Research: RL Training Deep Research Agents</div>
+                <p><strong>Challenge:</strong> How do you train an agent to do multi-hour research when reward is only available at the end?</p>
+                
+                <p><strong>Solution Approaches:</strong></p>
+                <ul>
+                    <li><strong>Curriculum learning:</strong> Start with simple 10-minute tasks, gradually increase complexity</li>
+                    <li><strong>Reward shaping:</strong> Intermediate rewards for completing sub-questions, finding novel sources</li>
+                    <li><strong>Expert demonstrations:</strong> Imitation learning from human researchers</li>
+                    <li><strong>Hindsight relabeling:</strong> If agent researched wrong question, treat it as training data for that question</li>
+                    <li><strong>Model-based RL:</strong> Learn a world model of "what happens when I search X" to enable planning</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Value displays
+        function updateLR() {
+            const power = parseFloat(document.getElementById('learningRate').value);
+            const value = Math.pow(10, power);
+            document.getElementById('lrDisplay').textContent = value.toExponential(0);
+        }
+
+        function updateBeta() {
+            const value = parseFloat(document.getElementById('betaValue').value);
+            document.getElementById('betaDisplay').textContent = value.toFixed(2);
+        }
+
+        function updateClip() {
+            const value = parseFloat(document.getElementById('clipValue').value);
+            document.getElementById('clipDisplay').textContent = value.toFixed(2);
+        }
+
+        // Training simulation
+        let trainingHistory = [];
+
+        function simulateTraining() {
+            const lrPower = parseFloat(document.getElementById('learningRate').value);
+            const lr = Math.pow(10, lrPower);
+            const beta = parseFloat(document.getElementById('betaValue').value);
+            const clip = parseFloat(document.getElementById('clipValue').value);
+            
+            // Simulate 100 steps of training
+            trainingHistory = [];
+            let reward = 0.5; // Starting reward
+            let kl = 0.01; // Starting KL
+            
+            for (let step = 0; step < 100; step++) {
+                // Simulate training dynamics
+                const lr_effect = lr * 10000; // Scale for visualization
+                const beta_effect = beta * 10;
+                const clip_effect = clip * 5;
+                
+                // Reward improves with good LR, gets unstable with bad settings
+                const lr_optimal = 0.00001;
+                const lr_distance = Math.abs(Math.log10(lr) - Math.log10(lr_optimal));
+                
+                // Update reward (with noise)
+                const reward_delta = (0.01 * lr_effect - 0.005 * lr_distance) * (1 - beta_effect * 0.1);
+                reward += reward_delta + (Math.random() - 0.5) * 0.02;
+                reward = Math.max(0, Math.min(1, reward));
+                
+                // KL divergence
+                kl += (lr_effect * 0.001 - beta_effect * 0.002) + (Math.random() - 0.5) * 0.001;
+                kl = Math.max(0, Math.min(0.1, kl));
+                
+                trainingHistory.push({
+                    step,
+                    reward,
+                    kl,
+                    stable: lr_distance < 1 && beta > 0.05
+                });
+            }
+            
+            displayTrainingResults();
+            drawTrainingChart();
+        }
+
+        function displayTrainingResults() {
+            if (trainingHistory.length === 0) return;
+            
+            const final = trainingHistory[trainingHistory.length - 1];
+            const avgReward = trainingHistory.reduce((s, h) => s + h.reward, 0) / trainingHistory.length;
+            const avgKL = trainingHistory.reduce((s, h) => s + h.kl, 0) / trainingHistory.length;
+            const stability = trainingHistory.filter(h => h.stable).length / trainingHistory.length;
+            
+            let html = '<h4>Training Results:</h4>';
+            html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">';
+            
+            html += `
+                <div class="metric-card">
+                    <div class="metric-label">Final Reward</div>
+                    <div class="metric-value">${final.reward.toFixed(3)}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Avg Reward</div>
+                    <div class="metric-value">${avgReward.toFixed(3)}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Final KL Divergence</div>
+                    <div class="metric-value">${final.kl.toFixed(4)}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Stability Score</div>
+                    <div class="metric-value">${(stability * 100).toFixed(0)}%</div>
+                </div>
+            `;
+            
+            html += '</div>';
+            
+            // Diagnosis
+            const lr = Math.pow(10, parseFloat(document.getElementById('learningRate').value));
+            const beta = parseFloat(document.getElementById('betaValue').value);
+            
+            html += '<div style="margin-top: 20px;">';
+            
+            if (lr > 1e-4) {
+                html += '<div class="warning-box"><div class="warning-title">⚠️ Learning Rate Too High</div>Training may be unstable. Reward oscillates. Try reducing LR.</div>';
+            } else if (lr < 1e-7) {
+                html += '<div class="warning-box"><div class="warning-title">⚠️ Learning Rate Too Low</div>Training is very slow. Reward barely improves. Try increasing LR.</div>';
+            } else {
+                html += '<div class="success-box"><div class="success-title">✅ Learning Rate in Good Range</div>Stable training with reasonable progress.</div>';
+            }
+            
+            if (beta < 0.02) {
+                html += '<div class="warning-box"><div class="warning-title">⚠️ KL Penalty Too Low</div>Policy drifting from reference. Risk of reward hacking.</div>';
+            } else if (beta > 0.3) {
+                html += '<div class="warning-box"><div class="warning-title">⚠️ KL Penalty Too High</div>Policy stuck too close to reference. Learning is constrained.</div>';
+            }
+            
+            html += '</div>';
+            
+            document.getElementById('trainingResults').innerHTML = html;
+        }
+
+        function drawTrainingChart() {
+            const canvas = document.getElementById('trainingChart');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 300;
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 50;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw axes
+            ctx.strokeStyle = '#a0a0a0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+            
+            // Draw reward curve
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            
+            trainingHistory.forEach((h, i) => {
+                const x = padding + (i / (trainingHistory.length - 1)) * (width - 2 * padding);
+                const y = height - padding - h.reward * (height - 2 * padding);
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            
+            ctx.stroke();
+            
+            // Draw KL curve (secondary axis)
+            ctx.strokeStyle = '#7b2ff7';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            
+            trainingHistory.forEach((h, i) => {
+                const x = padding + (i / (trainingHistory.length - 1)) * (width - 2 * padding);
+                const y = height - padding - (h.kl / 0.1) * (height - 2 * padding);
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Labels
+            ctx.fillStyle = '#e0e0e0';
+            ctx.font = '12px sans-serif';
+            ctx.fillText('Training Steps →', width / 2 - 50, height - 10);
+            
+            ctx.save();
+            ctx.translate(15, height / 2 + 30);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Reward →', 0, 0);
+            ctx.restore();
+            
+            // Legend
+            ctx.fillStyle = '#00d4ff';
+            ctx.fillRect(width - 150, 20, 20, 3);
+            ctx.fillStyle = '#e0e0e0';
+            ctx.fillText('Reward', width - 120, 25);
+            
+            ctx.strokeStyle = '#7b2ff7';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(width - 150, 40);
+            ctx.lineTo(width - 130, 40);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillText('KL Div', width - 120, 45);
+        }
+
+        function resetSimulation() {
+            trainingHistory = [];
+            document.getElementById('trainingResults').innerHTML = '';
+            const canvas = document.getElementById('trainingChart');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Agent flow simulation
+        function simulateAgent() {
+            const query = document.getElementById('researchQuery').value;
+            
+            const scenarios = {
+                climate: {
+                    steps: [
+                        { node: 'planner', action: 'Analyze query: "latest developments in climate tech"', decision: 'Need to search for recent innovations' },
+                        { node: 'tool_executor', action: 'Execute web_search("climate tech 2024")', result: 'Found 5 articles on carbon capture, renewable energy' },
+                        { node: 'planner', action: 'Review findings', decision: 'Need more specific info on carbon capture' },
+                        { node: 'tool_executor', action: 'Execute web_search("direct air capture 2024")', result: 'Found detailed info on DAC companies' },
+                        { node: 'planner', action: 'Check completeness', decision: 'Have sufficient information' },
+                        { node: 'synthesizer', action: 'Generate final report', result: 'Comprehensive summary ready' }
+                    ]
+                },
+                ai: {
+                    steps: [
+                        { node: 'planner', action: 'Decompose: AI breakthroughs in 2024', decision: 'Focus on major model releases, applications' },
+                        { node: 'tool_executor', action: 'Execute web_search("AI breakthroughs 2024")', result: 'GPT-5, Claude 4, Gemini Ultra' },
+                        { node: 'planner', action: 'Need more details', decision: 'Deep dive on capabilities' },
+                        { node: 'tool_executor', action: 'Execute web_search("GPT-5 capabilities")', result: 'Multimodal, reasoning improvements' },
+                        { node: 'synthesizer', action: 'Create summary', result: 'Report complete' }
+                    ]
+                },
+                quantum: {
+                    steps: [
+                        { node: 'planner', action: 'Plan: Explain quantum computing applications', decision: 'Cover theory + real applications' },
+                        { node: 'tool_executor', action: 'Execute web_search("quantum computing applications")', result: 'Cryptography, drug discovery, optimization' },
+                        { node: 'planner', action: 'Need concrete examples', decision: 'Search for case studies' },
+                        { node: 'tool_executor', action: 'Execute web_search("quantum drug discovery examples")', result: 'Molecule simulation use cases' },
+                        { node: 'synthesizer', action: 'Synthesize answer', result: 'Detailed explanation ready' }
+                    ]
+                }
+            };
+            
+            const scenario = scenarios[query];
+            
+            let html = '<h4>Agent Execution Flow:</h4>';
+            html += '<div class="flow-diagram">';
+            
+            scenario.steps.forEach((step, i) => {
+                const nodeColors = {
+                    'planner': '#00d4ff',
+                    'tool_executor': '#7b2ff7',
+                    'synthesizer': '#a8e063'
+                };
+                
+                const color = nodeColors[step.node];
+                
+                html += `
+                    <div class="flow-step" style="border-left-color: ${color};">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span class="step-number">${i+1}</span>
+                            <strong style="color: ${color}; text-transform: uppercase;">${step.node.replace('_', ' ')}</strong>
+                        </div>
+                        <div style="font-size: 0.95em; margin-bottom: 8px;"><strong>Action:</strong> ${step.action}</div>
+                        ${step.decision ? `<div style="font-size: 0.9em; color: #a0a0a0;"><strong>Decision:</strong> ${step.decision}</div>` : ''}
+                        ${step.result ? `<div style="font-size: 0.9em; color: #a8e063; margin-top: 5px;"><strong>Result:</strong> ${step.result}</div>` : ''}
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            
+            html += `
+                <div class="metric-card" style="margin-top: 20px;">
+                    <div class="metric-label">Execution Summary</div>
+                    <div style="font-size: 0.95em; margin-top: 10px;">
+                        <strong>Total Steps:</strong> ${scenario.steps.length}<br>
+                        <strong>Tools Used:</strong> ${scenario.steps.filter(s => s.node === 'tool_executor').length}<br>
+                        <strong>Status:</strong> <span class="status-good">Completed Successfully</span>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('agentFlow').innerHTML = html;
+        }
+
+        // Initialize
+        updateLR();
+        updateBeta();
+        updateClip();
+    </script>
+</body>
+</html>

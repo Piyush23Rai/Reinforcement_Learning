@@ -1,0 +1,2458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GRPO, RLVR & Advanced Reward Mechanisms - DeepSeek R1 Innovations</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            color: #e0e0e0;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 15px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            font-size: 2.8em;
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #a0a0a0;
+            margin-top: 10px;
+        }
+
+        .section {
+            background: rgba(22, 33, 62, 0.6);
+            padding: 35px;
+            margin-bottom: 30px;
+            border-radius: 12px;
+            border-left: 4px solid #00d4ff;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 48px rgba(0, 212, 255, 0.2);
+        }
+
+        h2 {
+            color: #00d4ff;
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        h3 {
+            color: #7b2ff7;
+            font-size: 1.5em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+
+        .math-block {
+            background: rgba(10, 10, 10, 0.8);
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 3px solid #7b2ff7;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .code-block {
+            background: rgba(10, 10, 10, 0.9);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid rgba(123, 47, 247, 0.3);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: 'Python';
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 0.7em;
+            color: #7b2ff7;
+            opacity: 0.6;
+        }
+
+        .keyword { color: #ff6b9d; }
+        .string { color: #a8e063; }
+        .comment { color: #6c757d; font-style: italic; }
+        .function { color: #00d4ff; }
+        .number { color: #ffa500; }
+
+        .interactive-demo {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(123, 47, 247, 0.1) 100%);
+            padding: 30px;
+            margin: 25px 0;
+            border-radius: 12px;
+            border: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .control-group {
+            background: rgba(10, 10, 10, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        label {
+            display: block;
+            color: #00d4ff;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-top: 5px;
+            accent-color: #7b2ff7;
+        }
+
+        select, textarea {
+            width: 100%;
+            padding: 8px;
+            background: rgba(10, 10, 10, 0.8);
+            color: #e0e0e0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .value-display {
+            display: inline-block;
+            background: rgba(123, 47, 247, 0.3);
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #00d4ff;
+            margin-left: 10px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+            margin: 5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 212, 255, 0.5);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .visualization {
+            background: rgba(10, 10, 10, 0.8);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            min-height: 200px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .metric-card {
+            background: rgba(0, 212, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #00d4ff;
+            margin: 10px 0;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #a0a0a0;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 1.5em;
+            color: #00d4ff;
+            font-weight: 700;
+            font-family: monospace;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(10, 10, 10, 0.6);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .comparison-table th {
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(123, 47, 247, 0.2) 100%);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .callout {
+            background: rgba(123, 47, 247, 0.15);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #7b2ff7;
+        }
+
+        .callout-title {
+            color: #7b2ff7;
+            font-weight: 700;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .innovation-box {
+            background: rgba(168, 224, 99, 0.1);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #a8e063;
+        }
+
+        .innovation-title {
+            color: #a8e063;
+            font-weight: 700;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .tab:hover {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .grid-3col {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-3col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .control-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .reward-signal {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 5px;
+        }
+
+        .reward-positive {
+            background: rgba(168, 224, 99, 0.2);
+            border: 1px solid #a8e063;
+            color: #a8e063;
+        }
+
+        .reward-negative {
+            background: rgba(255, 107, 157, 0.2);
+            border: 1px solid #ff6b9d;
+            color: #ff6b9d;
+        }
+
+        .reward-neutral {
+            background: rgba(160, 160, 160, 0.2);
+            border: 1px solid #a0a0a0;
+            color: #a0a0a0;
+        }
+
+        .formula {
+            text-align: center;
+            font-size: 1.1em;
+            margin: 15px 0;
+            color: #00d4ff;
+        }
+
+        .example-box {
+            background: rgba(0, 212, 255, 0.05);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .example-title {
+            color: #00d4ff;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .rubric-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: rgba(10, 10, 10, 0.6);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .rubric-table th {
+            background: rgba(123, 47, 247, 0.3);
+            padding: 12px;
+            text-align: left;
+            color: #7b2ff7;
+            font-weight: 600;
+        }
+
+        .rubric-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .score-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .score-0 { background: rgba(255, 107, 157, 0.3); color: #ff6b9d; }
+        .score-1 { background: rgba(255, 165, 0, 0.3); color: #ffa500; }
+        .score-2 { background: rgba(168, 224, 99, 0.3); color: #a8e063; }
+
+        canvas {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+
+        .sample-output {
+            background: rgba(10, 10, 10, 0.8);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 3px solid #7b2ff7;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .deepseek-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #a8e063 0%, #00d4ff 100%);
+            color: #0a0a0a;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>GRPO, RLVR & Advanced Reward Mechanisms</h1>
+            <div class="subtitle">DeepSeek R1 Innovations in Policy Optimization & Reward Design</div>
+        </header>
+
+        <!-- Section 1: GRPO Deep Dive -->
+        <div class="section">
+            <h2>Group Relative Policy Optimization (GRPO) <span class="deepseek-badge">DeepSeek R1</span></h2>
+            
+            <div class="innovation-box">
+                <div class="innovation-title">🚀 Key Innovation in DeepSeek R1</div>
+                <p>DeepSeek R1 uses GRPO instead of traditional PPO for reinforcement learning, achieving <strong>40% memory reduction</strong> and <strong>2x faster training</strong> by eliminating the critic model while maintaining stability through group-relative advantage estimation.</p>
+            </div>
+
+            <h3>Why GRPO? The Problem with PPO</h3>
+            <p>Traditional PPO requires training TWO models simultaneously:</p>
+            <div class="grid-2col">
+                <div class="metric-card">
+                    <div class="metric-label">Actor (Policy Model)</div>
+                    <div class="metric-value">π_θ(a|s)</div>
+                    <p style="margin-top: 10px; font-size: 0.9em;">Generates actions/text</p>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Critic (Value Model)</div>
+                    <div class="metric-value">V_φ(s)</div>
+                    <p style="margin-top: 10px; font-size: 0.9em;">Estimates state values</p>
+                </div>
+            </div>
+
+            <p style="margin-top: 20px;">This doubles memory requirements and introduces training complexity. GRPO eliminates the critic entirely!</p>
+
+            <h3>Mathematical Foundation</h3>
+            <div class="math-block">
+                <strong>Standard RL Objective:</strong><br><br>
+                J(θ) = 𝔼[r(x, y) - β·KL(π_θ || π_ref)]<br><br>
+
+                <strong>PPO Advantage (requires critic):</strong><br><br>
+                A(x, y) = r(x, y) - V_φ(x)<br>
+                where V_φ must be learned separately<br><br>
+
+                <strong>GRPO Advantage (critic-free):</strong><br><br>
+                For a group G = {y₁, y₂, ..., y_n} sampled from π_θ(·|x):<br><br>
+                
+                Â_i = (r_i - μ_G) / (σ_G + ε)<br><br>
+                
+                where:<br>
+                  μ_G = (1/n) Σ r_i    (group mean reward)<br>
+                  σ_G = sqrt((1/n) Σ (r_i - μ_G)²)    (group std dev)<br>
+                  ε = 1e-8    (numerical stability)<br><br>
+
+                <strong>Policy Gradient Update:</strong><br><br>
+                ∇_θ J = 𝔼[(Â(x,y) · ∇_θ log π_θ(y|x)) - β·∇_θ KL(π_θ || π_ref)]
+            </div>
+
+            <h3>GRPO vs PPO: Detailed Comparison</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Aspect</th>
+                        <th>PPO</th>
+                        <th>GRPO</th>
+                        <th>Impact</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Models Required</strong></td>
+                        <td>Actor + Critic</td>
+                        <td>Actor only</td>
+                        <td>50% fewer parameters</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Memory (70B model)</strong></td>
+                        <td>~280 GB</td>
+                        <td>~140 GB</td>
+                        <td>Fits on fewer GPUs</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Samples per Prompt</strong></td>
+                        <td>1-2</td>
+                        <td>4-16</td>
+                        <td>Better exploration</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Advantage Estimation</strong></td>
+                        <td>Learned V(s)</td>
+                        <td>Group statistics</td>
+                        <td>No critic training</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Training Stability</strong></td>
+                        <td>Clipping + value loss</td>
+                        <td>Normalization</td>
+                        <td>Simpler, more stable</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Gradient Variance</strong></td>
+                        <td>Lower (critic baseline)</td>
+                        <td>Higher (group baseline)</td>
+                        <td>Needs larger groups</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="interactive-demo">
+                <h3>Interactive GRPO Advantage Computation</h3>
+                <p>Simulate how GRPO computes advantages from a group of sampled responses:</p>
+
+                <div class="control-panel">
+                    <div class="control-group">
+                        <label>Group Size: <span class="value-display" id="groupSizeDisplay">8</span></label>
+                        <input type="range" id="groupSize" min="4" max="16" value="8" step="1" oninput="updateGroupSizeDisplay()">
+                    </div>
+                    <div class="control-group">
+                        <label>Reward Variance: <span class="value-display" id="rewardVarianceDisplay">0.3</span></label>
+                        <input type="range" id="rewardVariance" min="0.1" max="1.0" value="0.3" step="0.1" oninput="updateRewardVarianceDisplay()">
+                    </div>
+                </div>
+
+                <button onclick="simulateGRPO()">Generate Group & Compute Advantages</button>
+
+                <div id="grpoResults" class="visualization"></div>
+                <canvas id="grpoChart" style="margin-top: 20px;"></canvas>
+            </div>
+
+            <div class="code-block">
+<span class="keyword">import</span> torch
+<span class="keyword">import</span> torch.nn.functional <span class="keyword">as</span> F
+<span class="keyword">from</span> typing <span class="keyword">import</span> List, Tuple
+
+<span class="keyword">class</span> <span class="function">GRPOTrainer</span>:
+    <span class="string">"""
+    Group Relative Policy Optimization - DeepSeek R1 Style
+    Eliminates critic model while maintaining stable training.
+    """</span>
+    
+    <span class="keyword">def</span> <span class="function">__init__</span>(
+        self,
+        policy_model,
+        ref_model,
+        beta: <span class="keyword">float</span> = <span class="number">0.1</span>,      <span class="comment"># KL penalty coefficient</span>
+        group_size: <span class="keyword">int</span> = <span class="number">8</span>,    <span class="comment"># Samples per prompt</span>
+        epsilon: <span class="keyword">float</span> = <span class="number">1e-8</span>   <span class="comment"># Numerical stability</span>
+    ):
+        self.policy = policy_model
+        self.ref_model = ref_model
+        self.beta = beta
+        self.group_size = group_size
+        self.epsilon = epsilon
+    
+    <span class="keyword">def</span> <span class="function">compute_group_advantages</span>(
+        self,
+        rewards: torch.Tensor  <span class="comment"># Shape: [batch_size, group_size]</span>
+    ) -> torch.Tensor:
+        <span class="string">"""
+        Compute advantages relative to group statistics.
+        This replaces the learned critic in PPO!
+        """</span>
+        <span class="comment"># Compute mean and std per group</span>
+        mean_reward = rewards.mean(dim=<span class="number">1</span>, keepdim=<span class="keyword">True</span>)
+        std_reward = rewards.std(dim=<span class="number">1</span>, keepdim=<span class="keyword">True</span>)
+        
+        <span class="comment"># Normalize: how much better/worse than group average?</span>
+        advantages = (rewards - mean_reward) / (std_reward + self.epsilon)
+        
+        <span class="keyword">return</span> advantages
+    
+    <span class="keyword">def</span> <span class="function">compute_kl_penalty</span>(
+        self,
+        log_probs_policy: torch.Tensor,
+        log_probs_ref: torch.Tensor
+    ) -> torch.Tensor:
+        <span class="string">"""KL divergence KL(π_θ || π_ref) for regularization."""</span>
+        <span class="keyword">return</span> (log_probs_policy - log_probs_ref).mean()
+    
+    <span class="keyword">def</span> <span class="function">train_step</span>(
+        self,
+        prompts: List[<span class="keyword">str</span>],
+        optimizer: torch.optim.Optimizer
+    ) -> <span class="keyword">dict</span>:
+        <span class="string">"""Single GRPO training step."""</span>
+        batch_size = len(prompts)
+        total_loss = <span class="number">0</span>
+        
+        <span class="comment"># For each prompt, sample multiple completions</span>
+        all_rewards = []
+        all_log_probs_policy = []
+        all_log_probs_ref = []
+        
+        <span class="keyword">for</span> prompt <span class="keyword">in</span> prompts:
+            <span class="comment"># Sample group_size responses</span>
+            responses = self.policy.generate(
+                prompt,
+                num_samples=self.group_size,
+                do_sample=<span class="keyword">True</span>,
+                temperature=<span class="number">1.0</span>
+            )
+            
+            <span class="comment"># Compute rewards for all responses</span>
+            rewards = torch.tensor([
+                self.reward_function(prompt, r) 
+                <span class="keyword">for</span> r <span class="keyword">in</span> responses
+            ])
+            
+            <span class="comment"># Get log probabilities from both models</span>
+            log_probs_policy = torch.stack([
+                self.policy.compute_log_prob(prompt, r)
+                <span class="keyword">for</span> r <span class="keyword">in</span> responses
+            ])
+            
+            <span class="keyword">with</span> torch.no_grad():
+                log_probs_ref = torch.stack([
+                    self.ref_model.compute_log_prob(prompt, r)
+                    <span class="keyword">for</span> r <span class="keyword">in</span> responses
+                ])
+            
+            all_rewards.append(rewards)
+            all_log_probs_policy.append(log_probs_policy)
+            all_log_probs_ref.append(log_probs_ref)
+        
+        <span class="comment"># Stack to [batch_size, group_size]</span>
+        rewards_tensor = torch.stack(all_rewards)
+        log_probs_policy_tensor = torch.stack(all_log_probs_policy)
+        log_probs_ref_tensor = torch.stack(all_log_probs_ref)
+        
+        <span class="comment"># Compute group-relative advantages</span>
+        advantages = self.compute_group_advantages(rewards_tensor)
+        
+        <span class="comment"># Policy gradient loss</span>
+        pg_loss = -(advantages * log_probs_policy_tensor).mean()
+        
+        <span class="comment"># KL penalty</span>
+        kl_penalty = self.compute_kl_penalty(
+            log_probs_policy_tensor,
+            log_probs_ref_tensor
+        )
+        
+        <span class="comment"># Total loss</span>
+        loss = pg_loss + self.beta * kl_penalty
+        
+        <span class="comment"># Optimization step</span>
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        
+        <span class="keyword">return</span> {
+            <span class="string">'loss'</span>: loss.item(),
+            <span class="string">'pg_loss'</span>: pg_loss.item(),
+            <span class="string">'kl_penalty'</span>: kl_penalty.item(),
+            <span class="string">'mean_reward'</span>: rewards_tensor.mean().item(),
+            <span class="string">'mean_advantage'</span>: advantages.mean().item()
+        }
+            </div>
+        </div>
+
+        <!-- Section 2: RLVR -->
+        <div class="section">
+            <h2>Reinforcement Learning with Verifiable Rewards (RLVR)</h2>
+            
+            <p>RLVR is used when rewards are <span class="highlight">deterministic and verifiable</span> - such as code execution, mathematical correctness, or formal verification. This provides the strongest possible training signal.</p>
+
+            <h3>When to Use RLVR vs GRPO</h3>
+            <div class="grid-2col">
+                <div class="example-box">
+                    <div class="example-title">✅ Use RLVR When:</div>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Rewards are <strong>objectively verifiable</strong></li>
+                        <li>Code execution with unit tests</li>
+                        <li>Mathematical proof checking</li>
+                        <li>Formal verification (theorem provers)</li>
+                        <li>Game rules (Chess, Go positions)</li>
+                        <li>Regex matching, parsing correctness</li>
+                    </ul>
+                </div>
+                <div class="example-box">
+                    <div class="example-title">🔄 Use GRPO When:</div>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Rewards are <strong>subjective/learned</strong></li>
+                        <li>Helpfulness, harmlessness judgments</li>
+                        <li>Creative writing quality</li>
+                        <li>Conversation naturalness</li>
+                        <li>Summarization quality</li>
+                        <li>General instruction following</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>RLVR Mathematical Framework</h3>
+            <div class="math-block">
+                <strong>Binary Verifiable Reward:</strong><br><br>
+                r(x, y) = verify(y) ∈ {0, 1}<br><br>
+                
+                <strong>Acceptance-Rejection Sampling:</strong><br><br>
+                For each prompt x:<br>
+                1. Sample k responses: Y = {y₁, y₂, ..., y_k} ~ π_θ(·|x)<br>
+                2. Compute rewards: R = {r₁, r₂, ..., r_k}<br>
+                3. Select: y_accept = argmax_i r_i<br>
+                           y_reject = argmin_i r_i<br><br>
+
+                <strong>Policy Update (if r_accept > r_reject):</strong><br><br>
+                ∇_θ L = ∇_θ [log π_θ(y_accept|x) - log π_θ(y_reject|x)]<br>
+                     = ∇_θ log [π_θ(y_accept|x) / π_θ(y_reject|x)]
+            </div>
+
+            <div class="innovation-box">
+                <div class="innovation-title">💡 DeepSeek R1 Insight</div>
+                <p>DeepSeek R1 combines GRPO for general training with RLVR for reasoning tasks. During RL fine-tuning on math/code:</p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Math problems:</strong> RLVR with symbolic verification</li>
+                    <li><strong>Code generation:</strong> RLVR with execution + unit tests</li>
+                    <li><strong>General reasoning:</strong> GRPO with learned reward model</li>
+                </ul>
+            </div>
+
+            <div class="interactive-demo">
+                <h3>Interactive RLVR: Code Verification</h3>
+                <p>See how RLVR works with executable code generation:</p>
+
+                <div class="control-group">
+                    <label>Problem Type:</label>
+                    <select id="rlvrProblem" onchange="updateRLVRProblem()">
+                        <option value="fibonacci">Fibonacci(n) - Return nth Fibonacci number</option>
+                        <option value="palindrome">is_palindrome(s) - Check if string is palindrome</option>
+                        <option value="factorial">factorial(n) - Compute n!</option>
+                        <option value="prime">is_prime(n) - Check if number is prime</option>
+                    </select>
+                </div>
+
+                <div id="rlvrProblemDesc" style="margin-top: 15px; padding: 15px; background: rgba(0,212,255,0.1); border-radius: 6px;"></div>
+
+                <button onclick="simulateRLVR()" style="margin-top: 15px;">Generate & Verify Code Samples</button>
+
+                <div id="rlvrResults" class="visualization"></div>
+            </div>
+
+            <div class="code-block">
+<span class="keyword">class</span> <span class="function">RLVRTrainer</span>:
+    <span class="string">"""
+    Reinforcement Learning with Verifiable Rewards
+    Used in DeepSeek R1 for code and math tasks.
+    """</span>
+    
+    <span class="keyword">def</span> <span class="function">__init__</span>(
+        self,
+        model,
+        verifier: Callable[[<span class="keyword">str</span>, <span class="keyword">str</span>], <span class="keyword">float</span>],
+        beta: <span class="keyword">float</span> = <span class="number">0.01</span>,     <span class="comment"># Lower β for verifiable tasks</span>
+        num_samples: <span class="keyword">int</span> = <span class="number">4</span>    <span class="comment"># Samples per prompt</span>
+    ):
+        self.model = model
+        self.verifier = verifier
+        self.beta = beta
+        self.num_samples = num_samples
+    
+    <span class="keyword">def</span> <span class="function">sample_and_verify</span>(
+        self,
+        prompt: <span class="keyword">str</span>
+    ) -> Tuple[<span class="keyword">str</span>, <span class="keyword">str</span>, <span class="keyword">float</span>, <span class="keyword">float</span>]:
+        <span class="string">"""Sample multiple outputs and find best/worst pair."""</span>
+        samples = []
+        
+        <span class="comment"># Generate multiple candidate solutions</span>
+        <span class="keyword">for</span> _ <span class="keyword">in</span> range(self.num_samples):
+            output = self.model.generate(prompt, temperature=<span class="number">0.8</span>)
+            
+            <span class="comment"># Verify the output (e.g., run unit tests)</span>
+            reward = self.verifier(prompt, output)
+            
+            samples.append((output, reward))
+        
+        <span class="comment"># Sort by reward (descending)</span>
+        samples.sort(key=<span class="keyword">lambda</span> x: x[<span class="number">1</span>], reverse=<span class="keyword">True</span>)
+        
+        <span class="comment"># Best becomes accept, worst becomes reject</span>
+        accept_output, accept_reward = samples[<span class="number">0</span>]
+        reject_output, reject_reward = samples[<span class="number">-1</span>]
+        
+        <span class="keyword">return</span> accept_output, reject_output, accept_reward, reject_reward
+    
+    <span class="keyword">def</span> <span class="function">train_step</span>(
+        self,
+        prompts: List[<span class="keyword">str</span>],
+        optimizer: torch.optim.Optimizer
+    ) -> <span class="keyword">dict</span>:
+        <span class="string">"""RLVR training step."""</span>
+        total_loss = <span class="number">0</span>
+        num_updates = <span class="number">0</span>
+        total_accept_reward = <span class="number">0</span>
+        
+        <span class="keyword">for</span> prompt <span class="keyword">in</span> prompts:
+            <span class="comment"># Sample and find accept/reject pair</span>
+            accept, reject, r_acc, r_rej = self.sample_and_verify(prompt)
+            
+            <span class="comment"># Only update if accept is better (crucial!)</span>
+            <span class="keyword">if</span> r_acc > r_rej:
+                <span class="comment"># Compute log probabilities</span>
+                log_prob_accept = self.model.compute_log_prob(prompt, accept)
+                log_prob_reject = self.model.compute_log_prob(prompt, reject)
+                
+                <span class="comment"># RLVR loss: maximize log ratio</span>
+                loss = -(log_prob_accept - log_prob_reject)
+                
+                total_loss += loss
+                num_updates += <span class="number">1</span>
+            
+            total_accept_reward += r_acc
+        
+        <span class="comment"># Update only if we have valid pairs</span>
+        <span class="keyword">if</span> num_updates > <span class="number">0</span>:
+            avg_loss = total_loss / num_updates
+            optimizer.zero_grad()
+            avg_loss.backward()
+            optimizer.step()
+        
+        <span class="keyword">return</span> {
+            <span class="string">'loss'</span>: total_loss.item() <span class="keyword">if</span> num_updates > <span class="number">0</span> <span class="keyword">else</span> <span class="number">0</span>,
+            <span class="string">'num_updates'</span>: num_updates,
+            <span class="string">'update_rate'</span>: num_updates / len(prompts),
+            <span class="string">'mean_accept_reward'</span>: total_accept_reward / len(prompts)
+        }
+
+
+<span class="keyword">def</span> <span class="function">code_verifier</span>(prompt: <span class="keyword">str</span>, code: <span class="keyword">str</span>) -> <span class="keyword">float</span>:
+    <span class="string">"""Example verifier for code generation tasks."""</span>
+    <span class="keyword">try</span>:
+        <span class="comment"># Extract test cases from prompt</span>
+        test_cases = extract_test_cases(prompt)
+        
+        <span class="comment"># Execute code in sandbox</span>
+        passed = <span class="number">0</span>
+        <span class="keyword">for</span> inputs, expected in test_cases:
+            result = execute_in_sandbox(code, inputs, timeout=<span class="number">5</span>)
+            <span class="keyword">if</span> result == expected:
+                passed += <span class="number">1</span>
+        
+        <span class="comment"># Return fraction of tests passed</span>
+        <span class="keyword">return</span> passed / len(test_cases)
+    
+    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:
+        <span class="comment"># Syntax errors, runtime errors get 0 reward</span>
+        <span class="keyword">return</span> <span class="number">0.0</span>
+            </div>
+        </div>
+
+        <!-- Section 3: Likelihood Ratios and KL Penalties -->
+        <div class="section">
+            <h2>Likelihood Ratios & KL Penalties: Stability Mechanisms</h2>
+            
+            <p>Both GRPO and RLVR use <span class="highlight">KL regularization</span> to prevent the policy from deviating too far from the reference model, ensuring stable training and avoiding reward hacking.</p>
+
+            <h3>The Likelihood Ratio</h3>
+            <div class="math-block">
+                <strong>Policy Ratio (Importance Sampling):</strong><br><br>
+                ρ_θ(y|x) = π_θ(y|x) / π_ref(y|x)<br><br>
+                
+                <strong>In Log Space:</strong><br><br>
+                log ρ_θ(y|x) = log π_θ(y|x) - log π_ref(y|x)<br>
+                             = Σ_t [log π_θ(y_t|x,y_{<t}) - log π_ref(y_t|x,y_{<t})]<br><br>
+
+                <strong>PPO Clipped Objective:</strong><br><br>
+                L_PPO = min(ρ_θ · Â, clip(ρ_θ, 1-ε, 1+ε) · Â)<br>
+                where ε ≈ 0.2 (typical clipping range)
+            </div>
+
+            <h3>KL Divergence for Regularization</h3>
+            <div class="math-block">
+                <strong>Forward KL: KL(π_θ || π_ref)</strong><br><br>
+                KL(π_θ || π_ref) = 𝔼_{y~π_θ} [log π_θ(y|x) - log π_ref(y|x)]<br><br>
+                
+                <strong>Regularized Objective:</strong><br><br>
+                J(θ) = 𝔼[r(x,y)] - β·KL(π_θ || π_ref)<br><br>
+                
+                <strong>Role of β (KL coefficient):</strong><br>
+                • β = 0: No regularization (can diverge wildly)<br>
+                • β → ∞: Policy stays very close to reference<br>
+                • Typical: β ∈ [0.01, 0.1] for LLMs
+            </div>
+
+            <div class="callout">
+                <div class="callout-title">⚖️ The β-Regularization Tradeoff</div>
+                <p><strong>Low β (0.01):</strong> More exploration, faster learning, risk of instability</p>
+                <p><strong>High β (0.5):</strong> Very stable, but slow improvement, stays close to reference</p>
+                <p><strong>DeepSeek R1:</strong> Uses adaptive β starting at 0.1, decreasing to 0.01 as training stabilizes</p>
+            </div>
+
+            <div class="interactive-demo">
+                <h3>Interactive: KL Penalty Effects</h3>
+                <p>Visualize how β affects policy updates:</p>
+
+                <div class="control-panel">
+                    <div class="control-group">
+                        <label>β (KL Coefficient): <span class="value-display" id="betaDisplay">0.10</span></label>
+                        <input type="range" id="betaSlider" min="0.01" max="0.5" value="0.1" step="0.01" oninput="updateBetaDisplay()">
+                    </div>
+                    <div class="control-group">
+                        <label>Base Reward: <span class="value-display" id="baseRewardDisplay">1.0</span></label>
+                        <input type="range" id="baseReward" min="0.5" max="2.0" value="1.0" step="0.1" oninput="updateBaseRewardDisplay()">
+                    </div>
+                </div>
+
+                <button onclick="simulateKLPenalty()">Simulate Policy Updates</button>
+
+                <div id="klResults" class="visualization"></div>
+                <canvas id="klChart" style="margin-top: 20px;"></canvas>
+            </div>
+
+            <div class="code-block">
+<span class="keyword">def</span> <span class="function">compute_kl_divergence</span>(
+    log_probs_policy: torch.Tensor,
+    log_probs_ref: torch.Tensor
+) -> torch.Tensor:
+    <span class="string">"""
+    Compute forward KL divergence: KL(π_θ || π_ref)
+    
+    Args:
+        log_probs_policy: Log probabilities from current policy
+        log_probs_ref: Log probabilities from reference model
+    
+    Returns:
+        KL divergence value
+    """</span>
+    <span class="comment"># KL(π_θ || π_ref) = E_π_θ[log π_θ - log π_ref]</span>
+    kl = (log_probs_policy - log_probs_ref).mean()
+    <span class="keyword">return</span> kl
+
+
+<span class="keyword">def</span> <span class="function">adaptive_beta_schedule</span>(
+    step: <span class="keyword">int</span>,
+    total_steps: <span class="keyword">int</span>,
+    beta_start: <span class="keyword">float</span> = <span class="number">0.1</span>,
+    beta_end: <span class="keyword">float</span> = <span class="number">0.01</span>
+) -> <span class="keyword">float</span>:
+    <span class="string">"""
+    Adaptive β schedule used in DeepSeek R1.
+    Start with higher β for stability, decrease for more exploration.
+    """</span>
+    <span class="comment"># Linear decay</span>
+    progress = step / total_steps
+    beta = beta_start + (beta_end - beta_start) * progress
+    <span class="keyword">return</span> beta
+
+
+<span class="keyword">def</span> <span class="function">regularized_loss</span>(
+    rewards: torch.Tensor,
+    log_probs_policy: torch.Tensor,
+    log_probs_ref: torch.Tensor,
+    beta: <span class="keyword">float</span>
+) -> Tuple[torch.Tensor, <span class="keyword">dict</span>]:
+    <span class="string">"""
+    Compute regularized RL loss with KL penalty.
+    
+    Returns:
+        loss: Total loss (negative reward + KL penalty)
+        metrics: Dictionary of metrics for logging
+    """</span>
+    <span class="comment"># Policy gradient term (maximize reward)</span>
+    pg_loss = -(rewards * log_probs_policy).mean()
+    
+    <span class="comment"># KL penalty (stay close to reference)</span>
+    kl_div = compute_kl_divergence(log_probs_policy, log_probs_ref)
+    
+    <span class="comment"># Total loss</span>
+    loss = pg_loss + beta * kl_div
+    
+    metrics = {
+        <span class="string">'pg_loss'</span>: pg_loss.item(),
+        <span class="string">'kl_divergence'</span>: kl_div.item(),
+        <span class="string">'total_loss'</span>: loss.item(),
+        <span class="string">'mean_reward'</span>: rewards.mean().item()
+    }
+    
+    <span class="keyword">return</span> loss, metrics
+            </div>
+        </div>
+
+        <!-- Section 4: Designing Effective Rubrics -->
+        <div class="section">
+            <h2>Designing Effective Rubrics for Reward Models</h2>
+            
+            <p>A well-designed rubric transforms subjective qualities into <span class="highlight">measurable, reproducible rewards</span>. This section covers practical rubric design for LLM training.</p>
+
+            <h3>Principles of Good Rubric Design</h3>
+            <div class="grid-3col">
+                <div class="metric-card">
+                    <div class="metric-label">1. Specificity</div>
+                    <p style="margin-top: 10px; font-size: 0.9em;">Each criterion should be concrete and measurable, not vague or subjective.</p>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">2. Independence</div>
+                    <p style="margin-top: 10px; font-size: 0.9em;">Criteria should not overlap or double-count the same quality.</p>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">3. Calibration</div>
+                    <p style="margin-top: 10px; font-size: 0.9em;">Test rubric on diverse examples to ensure consistent scoring.</p>
+                </div>
+            </div>
+
+            <h3>Example Rubric: Code Quality Assessment</h3>
+            <table class="rubric-table">
+                <thead>
+                    <tr>
+                        <th>Criterion</th>
+                        <th>0 Points</th>
+                        <th>1 Point</th>
+                        <th>2 Points</th>
+                        <th>Weight</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Correctness</strong></td>
+                        <td>Fails most tests</td>
+                        <td>Passes >50% tests</td>
+                        <td>Passes all tests</td>
+                        <td>40%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Efficiency</strong></td>
+                        <td>O(n²) or worse</td>
+                        <td>O(n log n)</td>
+                        <td>O(n) or better</td>
+                        <td>25%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Code Style</strong></td>
+                        <td>No docstrings</td>
+                        <td>Has docstrings</td>
+                        <td>Docstrings + type hints</td>
+                        <td>15%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Edge Cases</strong></td>
+                        <td>Crashes on edge cases</td>
+                        <td>Handles some edges</td>
+                        <td>Handles all edges</td>
+                        <td>20%</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="interactive-demo">
+                <h3>Interactive Rubric Builder</h3>
+                <p>Create and test a custom reward rubric:</p>
+
+                <div class="control-panel">
+                    <div class="control-group">
+                        <label>Task Type:</label>
+                        <select id="rubricTask">
+                            <option value="summarization">Text Summarization</option>
+                            <option value="explanation">Technical Explanation</option>
+                            <option value="creative">Creative Writing</option>
+                            <option value="code">Code Generation</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="generateRubric()">Generate Sample Rubric</button>
+                <button onclick="testRubric()">Test on Sample Outputs</button>
+
+                <div id="rubricDisplay" class="visualization"></div>
+                <div id="rubricTest" class="visualization" style="margin-top: 20px;"></div>
+            </div>
+
+            <h3>Multi-Dimensional Reward Design</h3>
+            <div class="math-block">
+                <strong>Weighted Rubric Scoring:</strong><br><br>
+                r_total(y) = Σᵢ wᵢ · rᵢ(y)<br><br>
+                
+                where:<br>
+                • rᵢ(y) ∈ [0, 1]: Score for criterion i<br>
+                • wᵢ: Weight for criterion i (Σwᵢ = 1)<br><br>
+                
+                <strong>Example for Code Generation:</strong><br><br>
+                r(code) = 0.40·correctness(code)<br>
+                        + 0.25·efficiency(code)<br>
+                        + 0.20·edge_cases(code)<br>
+                        + 0.15·style(code)
+            </div>
+
+            <div class="code-block">
+<span class="keyword">from</span> dataclasses <span class="keyword">import</span> dataclass
+<span class="keyword">from</span> typing <span class="keyword">import</span> List, Callable
+
+@dataclass
+<span class="keyword">class</span> <span class="function">RubricCriterion</span>:
+    <span class="string">"""Single criterion in a reward rubric."""</span>
+    name: <span class="keyword">str</span>
+    scorer: Callable[[<span class="keyword">str</span>], <span class="keyword">float</span>]  <span class="comment"># Returns [0, 1]</span>
+    weight: <span class="keyword">float</span>
+    description: <span class="keyword">str</span>
+
+
+<span class="keyword">class</span> <span class="function">RewardRubric</span>:
+    <span class="string">"""
+    Multi-dimensional rubric for structured reward computation.
+    Used in DeepSeek R1 for complex task evaluation.
+    """</span>
+    
+    <span class="keyword">def</span> <span class="function">__init__</span>(self, criteria: List[RubricCriterion]):
+        self.criteria = criteria
+        
+        <span class="comment"># Validate weights sum to 1</span>
+        total_weight = sum(c.weight <span class="keyword">for</span> c <span class="keyword">in</span> criteria)
+        <span class="keyword">assert</span> abs(total_weight - <span class="number">1.0</span>) < <span class="number">1e-6</span>, <span class="string">f"Weights must sum to 1, got {total_weight}"</span>
+    
+    <span class="keyword">def</span> <span class="function">score</span>(self, output: <span class="keyword">str</span>) -> Tuple[<span class="keyword">float</span>, <span class="keyword">dict</span>]:
+        <span class="string">"""
+        Compute total reward and per-criterion breakdown.
+        
+        Returns:
+            total_reward: Weighted sum of criterion scores
+            breakdown: Dict of individual criterion scores
+        """</span>
+        breakdown = {}
+        total_reward = <span class="number">0.0</span>
+        
+        <span class="keyword">for</span> criterion <span class="keyword">in</span> self.criteria:
+            score = criterion.scorer(output)
+            breakdown[criterion.name] = score
+            total_reward += criterion.weight * score
+        
+        <span class="keyword">return</span> total_reward, breakdown
+
+
+<span class="comment"># Example: Code Quality Rubric</span>
+<span class="keyword">def</span> <span class="function">build_code_quality_rubric</span>() -> RewardRubric:
+    <span class="string">"""Build rubric for code generation tasks."""</span>
+    
+    <span class="keyword">def</span> <span class="function">correctness_scorer</span>(code: <span class="keyword">str</span>) -> <span class="keyword">float</span>:
+        <span class="comment"># Run unit tests</span>
+        passed, total = run_tests(code)
+        <span class="keyword">return</span> passed / total
+    
+    <span class="keyword">def</span> <span class="function">efficiency_scorer</span>(code: <span class="keyword">str</span>) -> <span class="keyword">float</span>:
+        <span class="comment"># Analyze time complexity</span>
+        complexity = analyze_complexity(code)
+        <span class="keyword">if</span> complexity == <span class="string">"O(n)"</span>: <span class="keyword">return</span> <span class="number">1.0</span>
+        <span class="keyword">elif</span> complexity == <span class="string">"O(n log n)"</span>: <span class="keyword">return</span> <span class="number">0.7</span>
+        <span class="keyword">elif</span> complexity == <span class="string">"O(n^2)"</span>: <span class="keyword">return</span> <span class="number">0.3</span>
+        <span class="keyword">else</span>: <span class="keyword">return</span> <span class="number">0.0</span>
+    
+    <span class="keyword">def</span> <span class="function">style_scorer</span>(code: <span class="keyword">str</span>) -> <span class="keyword">float</span>:
+        <span class="comment"># Check for docstrings and type hints</span>
+        has_docstring = <span class="string">'"""'</span> <span class="keyword">in</span> code <span class="keyword">or</span> <span class="string">"'''"</span> <span class="keyword">in</span> code
+        has_types = <span class="string">"->"</span> <span class="keyword">in</span> code
+        
+        <span class="keyword">if</span> has_docstring <span class="keyword">and</span> has_types: <span class="keyword">return</span> <span class="number">1.0</span>
+        <span class="keyword">elif</span> has_docstring <span class="keyword">or</span> has_types: <span class="keyword">return</span> <span class="number">0.5</span>
+        <span class="keyword">else</span>: <span class="keyword">return</span> <span class="number">0.0</span>
+    
+    <span class="keyword">def</span> <span class="function">edge_case_scorer</span>(code: <span class="keyword">str</span>) -> <span class="keyword">float</span>:
+        <span class="comment"># Test edge cases</span>
+        edge_tests = [test_empty(), test_negative(), test_large()]
+        passed = sum(<span class="number">1</span> <span class="keyword">for</span> t <span class="keyword">in</span> edge_tests <span class="keyword">if</span> t(code))
+        <span class="keyword">return</span> passed / len(edge_tests)
+    
+    criteria = [
+        RubricCriterion(
+            <span class="string">"correctness"</span>,
+            correctness_scorer,
+            <span class="number">0.40</span>,
+            <span class="string">"Passes unit tests"</span>
+        ),
+        RubricCriterion(
+            <span class="string">"efficiency"</span>,
+            efficiency_scorer,
+            <span class="number">0.25</span>,
+            <span class="string">"Time complexity"</span>
+        ),
+        RubricCriterion(
+            <span class="string">"style"</span>,
+            style_scorer,
+            <span class="number">0.15</span>,
+            <span class="string">"Code documentation"</span>
+        ),
+        RubricCriterion(
+            <span class="string">"edge_cases"</span>,
+            edge_case_scorer,
+            <span class="number">0.20</span>,
+            <span class="string">"Handles edge cases"</span>
+        )
+    ]
+    
+    <span class="keyword">return</span> RewardRubric(criteria)
+            </div>
+        </div>
+
+        <!-- Section 5: Reward Types -->
+        <div class="section">
+            <h2>Reward Types: Regex, Semantic, Execution & LLM Judges</h2>
+            
+            <p>Different tasks require different reward mechanisms. Here's a comprehensive guide to choosing and implementing reward types.</p>
+
+            <h3>Reward Type Decision Tree</h3>
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab(0)">Regex/Pattern</div>
+                <div class="tab" onclick="switchTab(1)">Execution-Based</div>
+                <div class="tab" onclick="switchTab(2)">Semantic Scoring</div>
+                <div class="tab" onclick="switchTab(3)">LLM Judges</div>
+            </div>
+
+            <div class="tab-content active" id="content-0">
+                <h3>Regex and Pattern Matching Rewards</h3>
+                <p><strong>Best for:</strong> Format compliance, structured outputs, syntax validation</p>
+                
+                <div class="example-box">
+                    <div class="example-title">Use Cases:</div>
+                    <ul style="margin-left: 20px;">
+                        <li>Email/phone validation</li>
+                        <li>JSON/XML format checking</li>
+                        <li>Code syntax patterns</li>
+                        <li>Citation format (APA, MLA)</li>
+                        <li>Markdown/HTML structure</li>
+                    </ul>
+                </div>
+
+                <div class="code-block">
+<span class="keyword">import</span> re
+<span class="keyword">from</span> typing <span class="keyword">import</span> List
+
+<span class="keyword">class</span> <span class="function">RegexRewardFunction</span>:
+    <span class="string">"""Pattern-based reward for format compliance."""</span>
+    
+    <span class="keyword">def</span> <span class="function">__init__</span>(self, patterns: List[Tuple[<span class="keyword">str</span>, <span class="keyword">float</span>, <span class="keyword">str</span>]]):
+        <span class="string">"""
+        Args:
+            patterns: List of (regex, weight, description) tuples
+        """</span>
+        self.patterns = [
+            (re.compile(pattern), weight, desc)
+            <span class="keyword">for</span> pattern, weight, desc <span class="keyword">in</span> patterns
+        ]
+    
+    <span class="keyword">def</span> <span class="function">__call__</span>(self, text: <span class="keyword">str</span>) -> Tuple[<span class="keyword">float</span>, <span class="keyword">dict</span>]:
+        <span class="string">"""Compute reward from pattern matching."""</span>
+        total_weight = sum(w <span class="keyword">for</span> _, w, _ <span class="keyword">in</span> self.patterns)
+        score = <span class="number">0.0</span>
+        breakdown = {}
+        
+        <span class="keyword">for</span> pattern, weight, desc <span class="keyword">in</span> self.patterns:
+            matches = <span class="keyword">bool</span>(pattern.search(text))
+            breakdown[desc] = matches
+            <span class="keyword">if</span> matches:
+                score += weight
+        
+        <span class="keyword">return</span> score / total_weight, breakdown
+
+
+<span class="comment"># Example: JSON response format</span>
+json_format_reward = RegexRewardFunction([
+    (<span class="string">r'^\s*\{.*\}\s*$'</span>, <span class="number">0.4</span>, <span class="string">"valid_json_structure"</span>),
+    (<span class="string">r'"result"\s*:'</span>, <span class="number">0.3</span>, <span class="string">"has_result_key"</span>),
+    (<span class="string">r'"confidence"\s*:\s*\d+\.?\d*'</span>, <span class="number">0.3</span>, <span class="string">"has_confidence"</span>)
+])
+
+<span class="comment"># Test output</span>
+output = <span class="string">'{"result": "positive", "confidence": 0.95}'</span>
+reward, details = json_format_reward(output)
+print(<span class="string">f"Reward: {reward:.2f}"</span>)
+print(<span class="string">f"Details: {details}"</span>)
+                </div>
+            </div>
+
+            <div class="tab-content" id="content-1">
+                <h3>Execution-Based Rewards</h3>
+                <p><strong>Best for:</strong> Code generation, symbolic math, formal verification</p>
+                
+                <div class="example-box">
+                    <div class="example-title">Use Cases:</div>
+                    <ul style="margin-left: 20px;">
+                        <li>Code that must compile/run</li>
+                        <li>SQL queries against database</li>
+                        <li>Mathematical proofs</li>
+                        <li>Game moves (Chess, Go)</li>
+                        <li>API calls with expected results</li>
+                    </ul>
+                </div>
+
+                <div class="code-block">
+<span class="keyword">import</span> subprocess
+<span class="keyword">import</span> tempfile
+<span class="keyword">from</span> typing <span class="keyword">import</span> Optional
+
+<span class="keyword">class</span> <span class="function">ExecutionReward</span>:
+    <span class="string">"""Reward based on code execution results."""</span>
+    
+    <span class="keyword">def</span> <span class="function">__init__</span>(
+        self,
+        test_cases: List[Tuple],  <span class="comment"># (input, expected_output)</span>
+        timeout: <span class="keyword">int</span> = <span class="number">5</span>
+    ):
+        self.test_cases = test_cases
+        self.timeout = timeout
+    
+    <span class="keyword">def</span> <span class="function">execute_code</span>(
+        self,
+        code: <span class="keyword">str</span>,
+        test_input: <span class="keyword">str</span>
+    ) -> Optional[<span class="keyword">str</span>]:
+        <span class="string">"""Execute code in sandbox with timeout."""</span>
+        <span class="keyword">try</span>:
+            <span class="comment"># Write code to temp file</span>
+            <span class="keyword">with</span> tempfile.NamedTemporaryFile(
+                mode=<span class="string">'w'</span>, suffix=<span class="string">'.py'</span>, delete=<span class="keyword">False</span>
+            ) <span class="keyword">as</span> f:
+                f.write(code)
+                temp_path = f.name
+            
+            <span class="comment"># Execute with timeout</span>
+            result = subprocess.run(
+                [<span class="string">'python'</span>, temp_path],
+                input=test_input,
+                capture_output=<span class="keyword">True</span>,
+                text=<span class="keyword">True</span>,
+                timeout=self.timeout
+            )
+            
+            <span class="keyword">return</span> result.stdout.strip()
+        
+        <span class="keyword">except</span> subprocess.TimeoutExpired:
+            <span class="keyword">return</span> <span class="keyword">None</span>  <span class="comment"># Timeout = 0 reward</span>
+        <span class="keyword">except</span> Exception:
+            <span class="keyword">return</span> <span class="keyword">None</span>  <span class="comment"># Any error = 0 reward</span>
+    
+    <span class="keyword">def</span> <span class="function">__call__</span>(self, code: <span class="keyword">str</span>) -> <span class="keyword">float</span>:
+        <span class="string">"""Run all test cases and return pass rate."""</span>
+        passed = <span class="number">0</span>
+        
+        <span class="keyword">for</span> test_input, expected in self.test_cases:
+            output = self.execute_code(code, test_input)
+            
+            <span class="keyword">if</span> output <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span> <span class="keyword">and</span> output == expected:
+                passed += <span class="number">1</span>
+        
+        <span class="keyword">return</span> passed / len(self.test_cases)
+
+
+<span class="comment"># Example: Fibonacci function</span>
+fib_tests = [
+    (<span class="string">"0"</span>, <span class="string">"0"</span>),
+    (<span class="string">"1"</span>, <span class="string">"1"</span>),
+    (<span class="string">"5"</span>, <span class="string">"5"</span>),
+    (<span class="string">"10"</span>, <span class="string">"55"</span>)
+]
+
+reward_fn = ExecutionReward(fib_tests)
+                </div>
+            </div>
+
+            <div class="tab-content" id="content-2">
+                <h3>Semantic Scoring Rewards</h3>
+                <p><strong>Best for:</strong> Meaning preservation, paraphrasing, summarization</p>
+                
+                <div class="example-box">
+                    <div class="example-title">Use Cases:</div>
+                    <ul style="margin-left: 20px;">
+                        <li>Translation quality</li>
+                        <li>Paraphrase detection</li>
+                        <li>Summarization faithfulness</li>
+                        <li>Question answering</li>
+                        <li>Semantic search relevance</li>
+                    </ul>
+                </div>
+
+                <div class="code-block">
+<span class="keyword">import</span> torch
+<span class="keyword">from</span> sentence_transformers <span class="keyword">import</span> SentenceTransformer
+<span class="keyword">from</span> sklearn.metrics.pairwise <span class="keyword">import</span> cosine_similarity
+
+<span class="keyword">class</span> <span class="function">SemanticReward</span>:
+    <span class="string">"""Reward based on semantic similarity."""</span>
+    
+    <span class="keyword">def</span> <span class="function">__init__</span>(
+        self,
+        model_name: <span class="keyword">str</span> = <span class="string">"all-MiniLM-L6-v2"</span>,
+        threshold: <span class="keyword">float</span> = <span class="number">0.7</span>
+    ):
+        self.model = SentenceTransformer(model_name)
+        self.threshold = threshold
+    
+    <span class="keyword">def</span> <span class="function">compute_similarity</span>(
+        self,
+        text1: <span class="keyword">str</span>,
+        text2: <span class="keyword">str</span>
+    ) -> <span class="keyword">float</span>:
+        <span class="string">"""Compute cosine similarity between embeddings."""</span>
+        <span class="comment"># Encode both texts</span>
+        emb1 = self.model.encode([text1])
+        emb2 = self.model.encode([text2])
+        
+        <span class="comment"># Cosine similarity</span>
+        sim = cosine_similarity(emb1, emb2)[<span class="number">0</span>, <span class="number">0</span>]
+        <span class="keyword">return</span> float(sim)
+    
+    <span class="keyword">def</span> <span class="function">__call__</span>(
+        self,
+        generated: <span class="keyword">str</span>,
+        reference: <span class="keyword">str</span>
+    ) -> Tuple[<span class="keyword">float</span>, <span class="keyword">dict</span>]:
+        <span class="string">"""
+        Compute semantic reward.
+        
+        Returns:
+            reward: 1.0 if similarity > threshold, else similarity
+            metrics: Detailed scoring info
+        """</span>
+        similarity = self.compute_similarity(generated, reference)
+        
+        <span class="comment"># Binary or continuous reward</span>
+        reward = <span class="number">1.0</span> <span class="keyword">if</span> similarity >= self.threshold <span class="keyword">else</span> similarity
+        
+        metrics = {
+            <span class="string">'similarity'</span>: similarity,
+            <span class="string">'threshold'</span>: self.threshold,
+            <span class="string">'passed'</span>: similarity >= self.threshold
+        }
+        
+        <span class="keyword">return</span> reward, metrics
+
+
+<span class="comment"># Example: Paraphrase detection</span>
+semantic_reward = SemanticReward(threshold=<span class="number">0.8</span>)
+
+original = <span class="string">"The weather is beautiful today."</span>
+paraphrase = <span class="string">"Today's weather is lovely."</span>
+
+reward, metrics = semantic_reward(paraphrase, original)
+print(<span class="string">f"Reward: {reward:.2f}, Similarity: {metrics['similarity']:.2f}"</span>)
+                </div>
+            </div>
+
+            <div class="tab-content" id="content-3">
+                <h3>LLM-as-Judge Rewards</h3>
+                <p><strong>Best for:</strong> Subjective quality, open-ended tasks, creative content</p>
+                
+                <div class="example-box">
+                    <div class="example-title">Use Cases:</div>
+                    <ul style="margin-left: 20px;">
+                        <li>Writing quality assessment</li>
+                        <li>Helpfulness/harmlessness</li>
+                        <li>Creative story evaluation</li>
+                        <li>Conversational quality</li>
+                        <li>Explanation clarity</li>
+                    </ul>
+                </div>
+
+                <div class="callout">
+                    <div class="callout-title">⚠️ LLM Judge Best Practices</div>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>Use structured prompts:</strong> Provide rubrics, not open-ended "rate this"</li>
+                        <li><strong>Request explanations:</strong> Force judges to justify scores</li>
+                        <li><strong>Multi-judge ensemble:</strong> Average multiple judges to reduce bias</li>
+                        <li><strong>Calibrate scores:</strong> Normalize to prevent consistent high/low ratings</li>
+                    </ul>
+                </div>
+
+                <div class="code-block">
+<span class="keyword">from</span> typing <span class="keyword">import</span> List
+<span class="keyword">import</span> anthropic
+
+<span class="keyword">class</span> <span class="function">LLMJudgeReward</span>:
+    <span class="string">"""Use LLM as a judge for subjective quality."""</span>
+    
+    <span class="keyword">def</span> <span class="function">__init__</span>(
+        self,
+        rubric: <span class="keyword">str</span>,
+        num_judges: <span class="keyword">int</span> = <span class="number">3</span>
+    ):
+        self.client = anthropic.Client()
+        self.rubric = rubric
+        self.num_judges = num_judges
+    
+    <span class="keyword">def</span> <span class="function">create_judge_prompt</span>(
+        self,
+        task: <span class="keyword">str</span>,
+        output: <span class="keyword">str</span>
+    ) -> <span class="keyword">str</span>:
+        <span class="string">"""Create structured judging prompt."""</span>
+        <span class="keyword">return</span> <span class="string">f"""You are evaluating an AI assistant's response.
+
+Task: {task}
+
+Response to evaluate:
+{output}
+
+Evaluation Rubric:
+{self.rubric}
+
+Provide your evaluation in this format:
+Score: [0.0-1.0]
+Reasoning: [Detailed explanation]
+
+Respond with ONLY the score and reasoning, no other text."""</span>
+    
+    <span class="keyword">def</span> <span class="function">parse_judge_response</span>(self, response: <span class="keyword">str</span>) -> <span class="keyword">float</span>:
+        <span class="string">"""Extract numerical score from judge response."""</span>
+        <span class="keyword">try</span>:
+            <span class="comment"># Look for "Score: X.XX"</span>
+            <span class="keyword">import</span> re
+            match = re.search(<span class="string">r'Score:\s*(\d+\.?\d*)'</span>, response)
+            <span class="keyword">if</span> match:
+                <span class="keyword">return</span> float(match.group(<span class="number">1</span>))
+            <span class="keyword">return</span> <span class="number">0.5</span>  <span class="comment"># Default neutral score</span>
+        <span class="keyword">except</span>:
+            <span class="keyword">return</span> <span class="number">0.5</span>
+    
+    <span class="keyword">def</span> <span class="function">__call__</span>(
+        self,
+        task: <span class="keyword">str</span>,
+        output: <span class="keyword">str</span>
+    ) -> Tuple[<span class="keyword">float</span>, List[<span class="keyword">str</span>]]:
+        <span class="string">"""
+        Get judgments from multiple LLM judges.
+        
+        Returns:
+            mean_score: Average across all judges
+            explanations: List of reasoning from each judge
+        """</span>
+        scores = []
+        explanations = []
+        
+        <span class="comment"># Query multiple judges</span>
+        <span class="keyword">for</span> _ <span class="keyword">in</span> range(self.num_judges):
+            prompt = self.create_judge_prompt(task, output)
+            
+            response = self.client.messages.create(
+                model=<span class="string">"claude-3-5-sonnet-20241022"</span>,
+                max_tokens=<span class="number">500</span>,
+                messages=[{<span class="string">"role"</span>: <span class="string">"user"</span>, <span class="string">"content"</span>: prompt}]
+            )
+            
+            judge_text = response.content[<span class="number">0</span>].text
+            score = self.parse_judge_response(judge_text)
+            
+            scores.append(score)
+            explanations.append(judge_text)
+        
+        <span class="comment"># Return mean score and all explanations</span>
+        mean_score = sum(scores) / len(scores)
+        <span class="keyword">return</span> mean_score, explanations
+
+
+<span class="comment"># Example rubric for helpfulness</span>
+helpfulness_rubric = <span class="string">"""
+Rate the response on these criteria (0.0-1.0 each):
+
+1. Relevance: Does it address the question directly?
+2. Completeness: Does it cover all aspects of the question?
+3. Clarity: Is it easy to understand?
+4. Accuracy: Is the information correct?
+5. Usefulness: Would this actually help the user?
+
+Final score = average of all criteria.
+"""</span>
+
+judge = LLMJudgeReward(helpfulness_rubric, num_judges=<span class="number">3</span>)
+                </div>
+            </div>
+
+            <div class="interactive-demo">
+                <h3>Interactive: Compare Reward Types</h3>
+                <p>See how different reward types score the same output:</p>
+
+                <div class="control-group">
+                    <label>Sample Output:</label>
+                    <textarea id="rewardTestOutput" placeholder="Enter text to score...">def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)</textarea>
+                </div>
+
+                <button onclick="testAllRewardTypes()">Test All Reward Types</button>
+
+                <div id="rewardComparison" class="visualization"></div>
+            </div>
+        </div>
+
+        <!-- Section 6: Practical Implementation -->
+        <div class="section">
+            <h2>End-to-End Implementation: Combining GRPO + Multi-Reward</h2>
+            
+            <p>Bring it all together: GRPO training with a multi-dimensional reward rubric using multiple reward types.</p>
+
+            <div class="code-block" style="font-size: 0.85em;">
+<span class="keyword">class</span> <span class="function">DeepSeekR1Trainer</span>:
+    <span class="string">"""
+    Complete training pipeline combining:
+    - GRPO for policy optimization
+    - Multi-dimensional rubrics
+    - Mixed reward types (execution + semantic + LLM judge)
+    - Adaptive β scheduling
+    """</span>
+    
+    <span class="keyword">def</span> <span class="function">__init__</span>(
+        self,
+        policy_model,
+        ref_model,
+        reward_rubric: RewardRubric,
+        beta_start: <span class="keyword">float</span> = <span class="number">0.1</span>,
+        beta_end: <span class="keyword">float</span> = <span class="number">0.01</span>,
+        group_size: <span class="keyword">int</span> = <span class="number">8</span>
+    ):
+        self.policy = policy_model
+        self.ref_model = ref_model
+        self.rubric = reward_rubric
+        self.beta_start = beta_start
+        self.beta_end = beta_end
+        self.group_size = group_size
+        self.step = <span class="number">0</span>
+    
+    <span class="keyword">def</span> <span class="function">get_current_beta</span>(self, total_steps: <span class="keyword">int</span>) -> <span class="keyword">float</span>:
+        <span class="string">"""Adaptive β schedule."""</span>
+        progress = self.step / total_steps
+        <span class="keyword">return</span> self.beta_start + (self.beta_end - self.beta_start) * progress
+    
+    <span class="keyword">def</span> <span class="function">train_step</span>(
+        self,
+        prompts: List[<span class="keyword">str</span>],
+        optimizer: torch.optim.Optimizer,
+        total_steps: <span class="keyword">int</span>
+    ) -> <span class="keyword">dict</span>:
+        <span class="string">"""Single training step with GRPO + rubric."""</span>
+        beta = self.get_current_beta(total_steps)
+        
+        <span class="comment"># Collect samples for each prompt</span>
+        all_rewards = []
+        all_log_probs_policy = []
+        all_log_probs_ref = []
+        reward_breakdowns = []
+        
+        <span class="keyword">for</span> prompt <span class="keyword">in</span> prompts:
+            <span class="comment"># Generate group_size responses</span>
+            responses = self.policy.generate(
+                prompt,
+                num_samples=self.group_size,
+                temperature=<span class="number">1.0</span>
+            )
+            
+            <span class="comment"># Score each response with rubric</span>
+            rewards = []
+            breakdowns = []
+            <span class="keyword">for</span> response <span class="keyword">in</span> responses:
+                reward, breakdown = self.rubric.score(response)
+                rewards.append(reward)
+                breakdowns.append(breakdown)
+            
+            <span class="comment"># Get log probabilities</span>
+            log_probs_policy = [
+                self.policy.compute_log_prob(prompt, r)
+                <span class="keyword">for</span> r <span class="keyword">in</span> responses
+            ]
+            
+            <span class="keyword">with</span> torch.no_grad():
+                log_probs_ref = [
+                    self.ref_model.compute_log_prob(prompt, r)
+                    <span class="keyword">for</span> r <span class="keyword">in</span> responses
+                ]
+            
+            all_rewards.append(torch.tensor(rewards))
+            all_log_probs_policy.append(torch.stack(log_probs_policy))
+            all_log_probs_ref.append(torch.stack(log_probs_ref))
+            reward_breakdowns.extend(breakdowns)
+        
+        <span class="comment"># Stack tensors: [batch_size, group_size]</span>
+        rewards_tensor = torch.stack(all_rewards)
+        log_probs_policy = torch.stack(all_log_probs_policy)
+        log_probs_ref = torch.stack(all_log_probs_ref)
+        
+        <span class="comment"># GRPO: Compute group-relative advantages</span>
+        mean_reward = rewards_tensor.mean(dim=<span class="number">1</span>, keepdim=<span class="keyword">True</span>)
+        std_reward = rewards_tensor.std(dim=<span class="number">1</span>, keepdim=<span class="keyword">True</span>)
+        advantages = (rewards_tensor - mean_reward) / (std_reward + <span class="number">1e-8</span>)
+        
+        <span class="comment"># Policy gradient loss</span>
+        pg_loss = -(advantages * log_probs_policy).mean()
+        
+        <span class="comment"># KL penalty with adaptive β</span>
+        kl_div = (log_probs_policy - log_probs_ref).mean()
+        
+        <span class="comment"># Total loss</span>
+        loss = pg_loss + beta * kl_div
+        
+        <span class="comment"># Optimize</span>
+        optimizer.zero_grad()
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.policy.parameters(), <span class="number">1.0</span>)
+        optimizer.step()
+        
+        self.step += <span class="number">1</span>
+        
+        <span class="comment"># Aggregate metrics</span>
+        metrics = {
+            <span class="string">'loss'</span>: loss.item(),
+            <span class="string">'pg_loss'</span>: pg_loss.item(),
+            <span class="string">'kl_div'</span>: kl_div.item(),
+            <span class="string">'beta'</span>: beta,
+            <span class="string">'mean_reward'</span>: rewards_tensor.mean().item(),
+            <span class="string">'std_reward'</span>: rewards_tensor.std().item(),
+            <span class="string">'mean_advantage'</span>: advantages.mean().item()
+        }
+        
+        <span class="comment"># Add per-criterion metrics</span>
+        <span class="keyword">if</span> reward_breakdowns:
+            <span class="keyword">for</span> key <span class="keyword">in</span> reward_breakdowns[<span class="number">0</span>].keys():
+                values = [b[key] <span class="keyword">for</span> b <span class="keyword">in</span> reward_breakdowns]
+                metrics[<span class="string">f'criterion_{key}'</span>] = sum(values) / len(values)
+        
+        <span class="keyword">return</span> metrics
+
+
+<span class="comment"># Example usage</span>
+<span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:
+    <span class="comment"># Build code quality rubric</span>
+    rubric = build_code_quality_rubric()
+    
+    <span class="comment"># Initialize trainer</span>
+    trainer = DeepSeekR1Trainer(
+        policy_model=policy,
+        ref_model=reference,
+        reward_rubric=rubric,
+        beta_start=<span class="number">0.1</span>,
+        beta_end=<span class="number">0.01</span>,
+        group_size=<span class="number">8</span>
+    )
+    
+    <span class="comment"># Training loop</span>
+    optimizer = torch.optim.AdamW(policy.parameters(), lr=<span class="number">1e-5</span>)
+    total_steps = <span class="number">10000</span>
+    
+    <span class="keyword">for</span> step <span class="keyword">in</span> range(total_steps):
+        prompts = sample_training_prompts(batch_size=<span class="number">4</span>)
+        metrics = trainer.train_step(prompts, optimizer, total_steps)
+        
+        <span class="keyword">if</span> step % <span class="number">100</span> == <span class="number">0</span>:
+            print(<span class="string">f"Step {step}: "</span>, metrics)
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Tab switching
+        function switchTab(index) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach((content, i) => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach((tab, i) => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(`content-${index}`).classList.add('active');
+            document.querySelectorAll('.tab')[index].classList.add('active');
+        }
+
+        // Value displays
+        function updateGroupSizeDisplay() {
+            const value = document.getElementById('groupSize').value;
+            document.getElementById('groupSizeDisplay').textContent = value;
+        }
+
+        function updateRewardVarianceDisplay() {
+            const value = document.getElementById('rewardVariance').value;
+            document.getElementById('rewardVarianceDisplay').textContent = value;
+        }
+
+        function updateBetaDisplay() {
+            const value = document.getElementById('betaSlider').value;
+            document.getElementById('betaDisplay').textContent = parseFloat(value).toFixed(2);
+        }
+
+        function updateBaseRewardDisplay() {
+            const value = document.getElementById('baseReward').value;
+            document.getElementById('baseRewardDisplay').textContent = parseFloat(value).toFixed(1);
+        }
+
+        // GRPO Simulation
+        function simulateGRPO() {
+            const groupSize = parseInt(document.getElementById('groupSize').value);
+            const variance = parseFloat(document.getElementById('rewardVariance').value);
+            
+            // Generate random rewards with specified variance
+            const baseReward = 0.6;
+            const rewards = [];
+            for (let i = 0; i < groupSize; i++) {
+                rewards.push(baseReward + (Math.random() - 0.5) * variance * 2);
+            }
+            
+            // Compute group statistics
+            const mean = rewards.reduce((a, b) => a + b) / rewards.length;
+            const variance_actual = rewards.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / rewards.length;
+            const std = Math.sqrt(variance_actual);
+            
+            // Compute advantages
+            const advantages = rewards.map(r => (r - mean) / (std + 1e-8));
+            
+            // Display results
+            let html = '<h4>Group Samples & Advantages:</h4>';
+            html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">';
+            
+            rewards.forEach((reward, i) => {
+                const advantage = advantages[i];
+                const color = advantage > 0 ? '#a8e063' : (advantage < 0 ? '#ff6b9d' : '#a0a0a0');
+                html += `
+                    <div style="background: rgba(10,10,10,0.8); padding: 15px; border-radius: 6px; border-left: 3px solid ${color};">
+                        <div style="font-weight: 700; color: #00d4ff; margin-bottom: 5px;">Sample ${i+1}</div>
+                        <div style="font-size: 0.9em; color: #a0a0a0;">Reward: ${reward.toFixed(3)}</div>
+                        <div style="font-size: 0.9em; color: ${color};">Advantage: ${advantage.toFixed(3)}</div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            html += `
+                <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                    <div class="metric-card">
+                        <div class="metric-label">Group Mean (μ)</div>
+                        <div class="metric-value">${mean.toFixed(3)}</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Group Std (σ)</div>
+                        <div class="metric-value">${std.toFixed(3)}</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Samples Used</div>
+                        <div class="metric-value">${groupSize}</div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('grpoResults').innerHTML = html;
+            
+            // Create chart
+            const ctx = document.getElementById('grpoChart').getContext('2d');
+            const canvas = document.getElementById('grpoChart');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 250;
+            
+            drawGRPOChart(ctx, rewards, advantages, mean, canvas.width, canvas.height);
+        }
+
+        function drawGRPOChart(ctx, rewards, advantages, mean, width, height) {
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            const padding = 50;
+            const chartWidth = width - 2 * padding;
+            const chartHeight = height - 2 * padding;
+            
+            // Draw axes
+            ctx.strokeStyle = '#a0a0a0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+            
+            // Draw mean line
+            const meanY = height - padding - (mean * chartHeight);
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(padding, meanY);
+            ctx.lineTo(width - padding, meanY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Draw bars
+            const barWidth = chartWidth / (rewards.length * 2);
+            rewards.forEach((reward, i) => {
+                const x = padding + (i + 0.5) * (chartWidth / rewards.length);
+                const barHeight = reward * chartHeight;
+                const y = height - padding - barHeight;
+                
+                // Color based on advantage
+                const advantage = advantages[i];
+                ctx.fillStyle = advantage > 0 ? '#a8e063' : '#ff6b9d';
+                ctx.fillRect(x - barWidth/2, y, barWidth, barHeight);
+                
+                // Outline
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(x - barWidth/2, y, barWidth, barHeight);
+            });
+            
+            // Labels
+            ctx.fillStyle = '#e0e0e0';
+            ctx.font = '12px monospace';
+            ctx.fillText('Rewards', 10, height/2);
+            ctx.fillText(`Mean: ${mean.toFixed(3)}`, width - 120, meanY - 10);
+        }
+
+        // RLVR Simulation
+        const rlvrProblems = {
+            fibonacci: {
+                name: "Fibonacci(n)",
+                desc: "Write a function that returns the nth Fibonacci number",
+                tests: [[0, 0], [1, 1], [5, 5], [10, 55]],
+                solutions: [
+                    { code: "def fib(n):\\n    if n <= 1: return n\\n    return fib(n-1) + fib(n-2)", correct: true },
+                    { code: "def fib(n):\\n    return n * 2  # Wrong!", correct: false },
+                    { code: "def fib(n):\\n    a, b = 0, 1\\n    for _ in range(n): a, b = b, a+b\\n    return a", correct: true },
+                    { code: "def fib(n):\\n    if n == 0: return 0\\n    return 1  # Incomplete", correct: false }
+                ]
+            },
+            palindrome: {
+                name: "is_palindrome(s)",
+                desc: "Check if a string is a palindrome",
+                tests: [["racecar", true], ["hello", false], ["a", true], ["ab", false]],
+                solutions: [
+                    { code: "def is_palindrome(s):\\n    return s == s[::-1]", correct: true },
+                    { code: "def is_palindrome(s):\\n    return True  # Always true", correct: false },
+                    { code: "def is_palindrome(s):\\n    return s.lower() == s.lower()[::-1]", correct: true },
+                    { code: "def is_palindrome(s):\\n    return len(s) > 0  # Wrong logic", correct: false }
+                ]
+            },
+            factorial: {
+                name: "factorial(n)",
+                desc: "Compute n! (factorial of n)",
+                tests: [[0, 1], [1, 1], [5, 120], [7, 5040]],
+                solutions: [
+                    { code: "def factorial(n):\\n    if n <= 1: return 1\\n    return n * factorial(n-1)", correct: true },
+                    { code: "def factorial(n):\\n    return n * (n-1)  # Wrong!", correct: false },
+                    { code: "def factorial(n):\\n    r = 1\\n    for i in range(1,n+1): r *= i\\n    return r", correct: true },
+                    { code: "def factorial(n):\\n    return n  # Incomplete", correct: false }
+                ]
+            },
+            prime: {
+                name: "is_prime(n)",
+                desc: "Check if a number is prime",
+                tests: [[2, true], [4, false], [17, true], [20, false]],
+                solutions: [
+                    { code: "def is_prime(n):\\n    if n < 2: return False\\n    for i in range(2,n): \\n        if n%i==0: return False\\n    return True", correct: true },
+                    { code: "def is_prime(n):\\n    return n > 1  # Too simple", correct: false },
+                    { code: "def is_prime(n):\\n    if n < 2: return False\\n    if n == 2: return True\\n    if n%2==0: return False\\n    for i in range(3,int(n**0.5)+1,2):\\n        if n%i==0: return False\\n    return True", correct: true },
+                    { code: "def is_prime(n):\\n    return n % 2 != 0  # Wrong", correct: false }
+                ]
+            }
+        };
+
+        function updateRLVRProblem() {
+            const problem = rlvrProblems[document.getElementById('rlvrProblem').value];
+            document.getElementById('rlvrProblemDesc').innerHTML = `
+                <strong>${problem.name}</strong><br>
+                ${problem.desc}<br>
+                <span style="color: #7b2ff7; margin-top: 5px; display: inline-block;">
+                Test cases: ${problem.tests.length} tests
+                </span>
+            `;
+        }
+
+        function simulateRLVR() {
+            const problemKey = document.getElementById('rlvrProblem').value;
+            const problem = rlvrProblems[problemKey];
+            
+            let html = '<h4>Sampled Solutions & Verification:</h4>';
+            
+            const samples = problem.solutions.map((sol, i) => ({
+                ...sol,
+                reward: sol.correct ? 1.0 : 0.0,
+                id: i
+            }));
+            
+            // Sort by reward
+            samples.sort((a, b) => b.reward - a.reward);
+            const accept = samples[0];
+            const reject = samples[samples.length - 1];
+            
+            html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">';
+            
+            // Accept sample
+            html += `
+                <div style="background: rgba(168,224,99,0.1); padding: 20px; border-radius: 8px; border: 2px solid #a8e063;">
+                    <div style="font-weight: 700; color: #a8e063; margin-bottom: 10px;">✓ ACCEPT (Best)</div>
+                    <div class="sample-output">${accept.code.replace(/\\n/g, '<br>')}</div>
+                    <div style="margin-top: 10px;">
+                        <span class="reward-positive">Reward: ${accept.reward.toFixed(1)}</span>
+                        <div style="font-size: 0.85em; color: #a8e063; margin-top: 5px;">
+                            All tests passed! ✓
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Reject sample
+            html += `
+                <div style="background: rgba(255,107,157,0.1); padding: 20px; border-radius: 8px; border: 2px solid #ff6b9d;">
+                    <div style="font-weight: 700; color: #ff6b9d; margin-bottom: 10px;">✗ REJECT (Worst)</div>
+                    <div class="sample-output">${reject.code.replace(/\\n/g, '<br>')}</div>
+                    <div style="margin-top: 10px;">
+                        <span class="reward-negative">Reward: ${reject.reward.toFixed(1)}</span>
+                        <div style="font-size: 0.85em; color: #ff6b9d; margin-top: 5px;">
+                            Failed verification ✗
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            html += '</div>';
+            
+            // Policy update
+            html += `
+                <div class="callout">
+                    <div class="callout-title">📊 RLVR Policy Update</div>
+                    <p>Since r_accept (${accept.reward}) > r_reject (${reject.reward}), we update:</p>
+                    <div class="math-block" style="font-size: 0.9em; margin-top: 10px;">
+                        ∇_θ L = ∇_θ [log π_θ(y_accept|x) - log π_θ(y_reject|x)]<br><br>
+                        Effect: <strong style="color: #a8e063;">Increase</strong> probability of correct solutions<br>
+                                <strong style="color: #ff6b9d;">Decrease</strong> probability of incorrect solutions
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('rlvrResults').innerHTML = html;
+        }
+
+        // KL Penalty Simulation
+        function simulateKLPenalty() {
+            const beta = parseFloat(document.getElementById('betaSlider').value);
+            const baseReward = parseFloat(document.getElementById('baseReward').value);
+            
+            // Simulate different KL divergences
+            const klValues = [0, 0.05, 0.1, 0.2, 0.5, 1.0];
+            const results = klValues.map(kl => ({
+                kl: kl,
+                penalty: beta * kl,
+                effectiveReward: baseReward - beta * kl
+            }));
+            
+            let html = '<h4>KL Penalty Effects on Effective Reward:</h4>';
+            html += '<div style="overflow-x: auto;"><table class="comparison-table" style="margin-top: 15px;">';
+            html += '<thead><tr><th>KL Divergence</th><th>KL Penalty (β×KL)</th><th>Effective Reward</th><th>Impact</th></tr></thead><tbody>';
+            
+            results.forEach(r => {
+                const impact = ((r.effectiveReward / baseReward - 1) * 100).toFixed(1);
+                const impactColor = impact >= 0 ? '#a8e063' : '#ff6b9d';
+                html += `
+                    <tr>
+                        <td><strong>${r.kl.toFixed(2)}</strong></td>
+                        <td>${r.penalty.toFixed(3)}</td>
+                        <td style="color: #00d4ff; font-weight: 700;">${r.effectiveReward.toFixed(3)}</td>
+                        <td style="color: ${impactColor};">${impact > 0 ? '+' : ''}${impact}%</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table></div>';
+            
+            html += `
+                <div class="metric-card" style="margin-top: 20px;">
+                    <div class="metric-label">Current β Setting</div>
+                    <div class="metric-value">${beta.toFixed(2)}</div>
+                    <p style="margin-top: 10px; font-size: 0.9em;">
+                        ${beta < 0.05 ? '⚠️ Low β: More exploration, potential instability' : 
+                          beta > 0.2 ? '🔒 High β: Very stable, slower improvement' : 
+                          '✓ Moderate β: Balanced stability and exploration'}
+                    </p>
+                </div>
+            `;
+            
+            document.getElementById('klResults').innerHTML = html;
+            
+            // Draw chart
+            const ctx = document.getElementById('klChart').getContext('2d');
+            const canvas = document.getElementById('klChart');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 300;
+            
+            drawKLChart(ctx, results, baseReward, canvas.width, canvas.height);
+        }
+
+        function drawKLChart(ctx, results, baseReward, width, height) {
+            ctx.clearRect(0, 0, width, height);
+            
+            const padding = 60;
+            const chartWidth = width - 2 * padding;
+            const chartHeight = height - 2 * padding;
+            
+            // Draw axes
+            ctx.strokeStyle = '#a0a0a0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+            
+            // Base reward line
+            const baseY = height - padding - (baseReward / (baseReward + 0.5)) * chartHeight;
+            ctx.strokeStyle = '#00d4ff';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(padding, baseY);
+            ctx.lineTo(width - padding, baseY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Plot points and lines
+            ctx.strokeStyle = '#7b2ff7';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            
+            results.forEach((r, i) => {
+                const x = padding + (i / (results.length - 1)) * chartWidth;
+                const y = height - padding - (r.effectiveReward / (baseReward + 0.5)) * chartHeight;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+                
+                // Draw point
+                ctx.fillStyle = r.effectiveReward >= baseReward * 0.8 ? '#a8e063' : '#ff6b9d';
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                ctx.fill();
+            });
+            
+            ctx.strokeStyle = '#7b2ff7';
+            ctx.stroke();
+            
+            // Labels
+            ctx.fillStyle = '#e0e0e0';
+            ctx.font = '12px sans-serif';
+            ctx.fillText('KL Divergence →', width - 130, height - 20);
+            ctx.save();
+            ctx.translate(20, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Effective Reward →', 0, 0);
+            ctx.restore();
+        }
+
+        // Rubric Generator
+        const rubricTemplates = {
+            summarization: {
+                name: "Text Summarization",
+                criteria: [
+                    { name: "Faithfulness", weight: 0.35, levels: ["Contains hallucinations", "Mostly accurate", "Fully faithful to source"] },
+                    { name: "Coverage", weight: 0.30, levels: ["Misses key points", "Covers main points", "Comprehensive coverage"] },
+                    { name: "Conciseness", weight: 0.20, levels: ["Too verbose", "Reasonable length", "Highly concise"] },
+                    { name: "Coherence", weight: 0.15, levels: ["Disjointed", "Readable", "Flows naturally"] }
+                ]
+            },
+            explanation: {
+                name: "Technical Explanation",
+                criteria: [
+                    { name: "Accuracy", weight: 0.40, levels: ["Contains errors", "Mostly correct", "Fully accurate"] },
+                    { name: "Clarity", weight: 0.30, levels: ["Confusing", "Understandable", "Crystal clear"] },
+                    { name: "Completeness", weight: 0.20, levels: ["Incomplete", "Covers basics", "Thorough"] },
+                    { name: "Examples", weight: 0.10, levels: ["No examples", "Has examples", "Excellent examples"] }
+                ]
+            },
+            creative: {
+                name: "Creative Writing",
+                criteria: [
+                    { name: "Originality", weight: 0.30, levels: ["Cliché", "Some originality", "Highly creative"] },
+                    { name: "Engagement", weight: 0.25, levels: ["Boring", "Interesting", "Captivating"] },
+                    { name: "Coherence", weight: 0.25, levels: ["Confusing plot", "Makes sense", "Well-structured"] },
+                    { name: "Style", weight: 0.20, levels: ["Poor prose", "Good writing", "Excellent prose"] }
+                ]
+            },
+            code: {
+                name: "Code Generation",
+                criteria: [
+                    { name: "Correctness", weight: 0.40, levels: ["Fails tests", "Passes some tests", "Passes all tests"] },
+                    { name: "Efficiency", weight: 0.25, levels: ["Inefficient", "Acceptable", "Optimal"] },
+                    { name: "Readability", weight: 0.20, levels: ["Hard to read", "Readable", "Very clean"] },
+                    { name: "Documentation", weight: 0.15, levels: ["No docs", "Basic docs", "Well documented"] }
+                ]
+            }
+        };
+
+        function generateRubric() {
+            const taskType = document.getElementById('rubricTask').value;
+            const rubric = rubricTemplates[taskType];
+            
+            let html = `<h4>Rubric: ${rubric.name}</h4>`;
+            html += '<table class="rubric-table"><thead><tr><th>Criterion</th><th>Weight</th><th>0 Points</th><th>1 Point</th><th>2 Points</th></tr></thead><tbody>';
+            
+            rubric.criteria.forEach(c => {
+                html += `
+                    <tr>
+                        <td><strong>${c.name}</strong></td>
+                        <td>${(c.weight * 100).toFixed(0)}%</td>
+                        <td>${c.levels[0]}</td>
+                        <td>${c.levels[1]}</td>
+                        <td>${c.levels[2]}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            
+            html += `
+                <div class="callout" style="margin-top: 20px;">
+                    <div class="callout-title">💡 Rubric Formula</div>
+                    <div class="math-block" style="font-size: 0.9em;">
+                        r_total = ${rubric.criteria.map(c => `${c.weight.toFixed(2)}·${c.name}`).join(' +<br>          ')}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('rubricDisplay').innerHTML = html;
+        }
+
+        function testRubric() {
+            const taskType = document.getElementById('rubricTask').value;
+            const rubric = rubricTemplates[taskType];
+            
+            // Generate 3 sample outputs with different quality levels
+            const samples = [
+                { quality: "poor", scores: rubric.criteria.map(() => Math.random() * 0.5) },
+                { quality: "good", scores: rubric.criteria.map(() => 0.5 + Math.random() * 0.5) },
+                { quality: "excellent", scores: rubric.criteria.map(() => 1.5 + Math.random() * 0.5) }
+            ];
+            
+            let html = '<h4>Testing Rubric on Sample Outputs:</h4>';
+            html += '<div style="display: grid; gap: 15px;">';
+            
+            samples.forEach((sample, idx) => {
+                const totalScore = sample.scores.reduce((sum, score, i) => 
+                    sum + score * rubric.criteria[i].weight, 0
+                );
+                const normalizedScore = totalScore / 2; // Normalize to [0,1]
+                
+                const color = normalizedScore >= 0.7 ? '#a8e063' : normalizedScore >= 0.4 ? '#ffa500' : '#ff6b9d';
+                
+                html += `
+                    <div style="background: rgba(10,10,10,0.6); padding: 20px; border-radius: 8px; border-left: 4px solid ${color};">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div style="font-weight: 700; color: ${color}; text-transform: uppercase;">
+                                Sample ${idx + 1}: ${sample.quality}
+                            </div>
+                            <div style="font-size: 1.5em; color: ${color}; font-weight: 700; font-family: monospace;">
+                                ${normalizedScore.toFixed(3)}
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                            ${rubric.criteria.map((c, i) => {
+                                const score = sample.scores[i];
+                                const weighted = score * c.weight;
+                                return `
+                                    <div style="font-size: 0.85em;">
+                                        <div style="color: #a0a0a0;">${c.name}</div>
+                                        <div style="color: #00d4ff; font-weight: 600;">${(score/2).toFixed(2)} × ${c.weight.toFixed(2)} = ${weighted.toFixed(3)}</div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            document.getElementById('rubricTest').innerHTML = html;
+        }
+
+        function testAllRewardTypes() {
+            const output = document.getElementById('rewardTestOutput').value;
+            
+            let html = '<h4>Reward Type Comparison:</h4>';
+            html += '<div style="display: grid; gap: 20px;">';
+            
+            // Regex/Pattern
+            const hasDefKeyword = output.includes('def ');
+            const hasReturn = output.includes('return');
+            const hasIndentation = output.includes('    ');
+            const regexScore = (hasDefKeyword ? 0.4 : 0) + (hasReturn ? 0.3 : 0) + (hasIndentation ? 0.3 : 0);
+            
+            html += `
+                <div class="example-box">
+                    <div class="example-title">📝 Regex/Pattern Matching</div>
+                    <div style="margin: 15px 0;">
+                        <span class="${hasDefKeyword ? 'reward-positive' : 'reward-negative'}">
+                            ${hasDefKeyword ? '✓' : '✗'} Has 'def' keyword
+                        </span>
+                        <span class="${hasReturn ? 'reward-positive' : 'reward-negative'}">
+                            ${hasReturn ? '✓' : '✗'} Has 'return' statement
+                        </span>
+                        <span class="${hasIndentation ? 'reward-positive' : 'reward-negative'}">
+                            ${hasIndentation ? '✓' : '✗'} Has indentation
+                        </span>
+                    </div>
+                    <div style="font-size: 1.3em; color: #00d4ff; font-weight: 700;">
+                        Score: ${regexScore.toFixed(2)}
+                    </div>
+                </div>
+            `;
+            
+            // Execution-based (simulated)
+            const execScore = Math.random() > 0.5 ? 1.0 : 0.0;
+            html += `
+                <div class="example-box">
+                    <div class="example-title">⚡ Execution-Based</div>
+                    <div style="margin: 15px 0;">
+                        <div style="font-size: 0.9em; color: #a0a0a0;">Simulated test execution...</div>
+                        <span class="${execScore > 0 ? 'reward-positive' : 'reward-negative'}">
+                            ${execScore > 0 ? '✓ All tests passed' : '✗ Tests failed'}
+                        </span>
+                    </div>
+                    <div style="font-size: 1.3em; color: #00d4ff; font-weight: 700;">
+                        Score: ${execScore.toFixed(2)}
+                    </div>
+                </div>
+            `;
+            
+            // Semantic (simulated)
+            const semanticScore = 0.7 + Math.random() * 0.3;
+            html += `
+                <div class="example-box">
+                    <div class="example-title">🧠 Semantic Similarity</div>
+                    <div style="margin: 15px 0;">
+                        <div style="font-size: 0.9em; color: #a0a0a0;">Embedding similarity to reference...</div>
+                        <span class="reward-positive">
+                            Similarity: ${semanticScore.toFixed(3)}
+                        </span>
+                    </div>
+                    <div style="font-size: 1.3em; color: #00d4ff; font-weight: 700;">
+                        Score: ${semanticScore.toFixed(2)}
+                    </div>
+                </div>
+            `;
+            
+            // LLM Judge (simulated)
+            const judgeScore = 0.6 + Math.random() * 0.4;
+            html += `
+                <div class="example-box">
+                    <div class="example-title">⚖️ LLM Judge</div>
+                    <div style="margin: 15px 0;">
+                        <div style="font-size: 0.9em; color: #a0a0a0;">3 judges scoring...</div>
+                        <div style="font-size: 0.85em; margin-top: 5px;">
+                            Judge 1: ${(judgeScore - 0.05).toFixed(2)}<br>
+                            Judge 2: ${judgeScore.toFixed(2)}<br>
+                            Judge 3: ${(judgeScore + 0.05).toFixed(2)}
+                        </div>
+                    </div>
+                    <div style="font-size: 1.3em; color: #00d4ff; font-weight: 700;">
+                        Average: ${judgeScore.toFixed(2)}
+                    </div>
+                </div>
+            `;
+            
+            html += '</div>';
+            
+            html += `
+                <div class="callout" style="margin-top: 20px;">
+                    <div class="callout-title">🎯 Recommendation</div>
+                    <p>For code generation tasks:</p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Primary:</strong> Execution-based (unit tests) - highest signal</li>
+                        <li><strong>Secondary:</strong> Regex (syntax checking) - fast validation</li>
+                        <li><strong>Tertiary:</strong> LLM Judge (code style/readability) - subjective quality</li>
+                    </ul>
+                </div>
+            `;
+            
+            document.getElementById('rewardComparison').innerHTML = html;
+        }
+
+        // Initialize
+        updateRLVRProblem();
+        generateRubric();
+    </script>
+</body>
+</html>
